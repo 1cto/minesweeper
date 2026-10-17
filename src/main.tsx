@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BEGINNER, type Layout } from "./engine/game";
 import { layoutFromSearch } from "./testHooks/layoutParam";
 import { App } from "./ui/App";
+import "./ui/retro.css";
 
 /** The test-only Layout override; the MODE check lets public builds drop it entirely. */
 function initialLayout(): Layout | undefined {
