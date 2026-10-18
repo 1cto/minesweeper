@@ -16,12 +16,23 @@ export const BEGINNER: Difficulty = { name: "Beginner", width: 9, height: 9, min
 
 export type GameStatus = "ready" | "playing" | "won" | "lost";
 
+/** The player's marker on a Hidden Cell. */
+export type Marker = "flag" | "question";
+
 export type CellView =
   | { readonly kind: "hidden" }
+  | { readonly kind: Marker }
   | { readonly kind: "revealed"; readonly clue: number }
   | { readonly kind: "exploded" };
 
-export type Action = { readonly type: "reveal"; readonly cell: Coord; readonly now: number };
+export type Action =
+  | { readonly type: "reveal"; readonly cell: Coord; readonly now: number }
+  | {
+      readonly type: "cycleMarker";
+      readonly cell: Coord;
+      readonly questionsEnabled: boolean;
+      readonly now: number;
+    };
 
 export type Game = {
   readonly difficulty: Difficulty;
@@ -30,6 +41,7 @@ export type Game = {
   /** Cell indexes holding a Mine; absent until the Layout is fixed by the first Reveal. */
   readonly mines?: ReadonlySet<number>;
   readonly revealed: ReadonlySet<number>;
+  readonly markers: ReadonlyMap<number, Marker>;
   readonly exploded?: Coord;
 };
 
@@ -38,26 +50,58 @@ export function newGame(
   options: { random: RandomSource; layout?: Layout },
 ): Game {
   const mines = options.layout && new Set(options.layout.map((cell) => indexOf(difficulty, cell)));
-  return { difficulty, random: options.random, status: "ready", mines, revealed: new Set() };
+  return {
+    difficulty,
+    random: options.random,
+    status: "ready",
+    mines,
+    revealed: new Set(),
+    markers: new Map(),
+  };
 }
 
 export function applyAction(game: Game, action: Action): Game {
   if (game.status === "won" || game.status === "lost") return game;
+  switch (action.type) {
+    case "reveal":
+      return reveal(game, action.cell);
+    case "cycleMarker":
+      return cycleMarker(game, action.cell, action.questionsEnabled);
+  }
+}
+
+/** Unmarked → Flag → Question → unmarked; without Questions, unmarked ↔ Flag. */
+function cycleMarker(game: Game, cell: Coord, questionsEnabled: boolean): Game {
+  const index = indexOf(game.difficulty, cell);
+  if (game.revealed.has(index)) return game;
+  const markers = new Map(game.markers);
+  const current = markers.get(index);
+  if (current === undefined) markers.set(index, "flag");
+  else if (current === "flag" && questionsEnabled) markers.set(index, "question");
+  else markers.delete(index);
+  return { ...game, markers };
+}
+
+function reveal(game: Game, cell: Coord): Game {
   const { difficulty } = game;
-  const mines = game.mines ?? placeMines(difficulty, indexOf(difficulty, action.cell), game.random);
-  if (mines.has(indexOf(difficulty, action.cell))) {
-    return { ...game, mines, status: "lost", exploded: action.cell };
+  const target = indexOf(difficulty, cell);
+  if (game.markers.get(target) === "flag") return game;
+  const mines = game.mines ?? placeMines(difficulty, target, game.random);
+  if (mines.has(target)) {
+    return { ...game, mines, status: "lost", exploded: cell };
   }
   const revealed = new Set(game.revealed);
-  const pending = [action.cell];
-  for (let cell = pending.pop(); cell; cell = pending.pop()) {
-    const index = indexOf(difficulty, cell);
-    if (revealed.has(index)) continue;
+  const markers = new Map(game.markers);
+  const pending = [cell];
+  for (let next = pending.pop(); next; next = pending.pop()) {
+    const index = indexOf(difficulty, next);
+    if (revealed.has(index) || markers.get(index) === "flag") continue;
     revealed.add(index);
-    if (clueAt(difficulty, mines, cell) === 0) pending.push(...neighborsOf(difficulty, cell));
+    markers.delete(index);
+    if (clueAt(difficulty, mines, next) === 0) pending.push(...neighborsOf(difficulty, next));
   }
   const won = revealed.size === difficulty.width * difficulty.height - mines.size;
-  return { ...game, mines, status: won ? "won" : "playing", revealed };
+  return { ...game, mines, status: won ? "won" : "playing", revealed, markers };
 }
 
 export function layoutOf(game: Game): Layout | undefined {
@@ -71,13 +115,20 @@ export function mineCount(game: Game): number {
   return game.mines?.size ?? game.difficulty.mines;
 }
 
+/** The Mine count minus the number of Flags; negative when the player over-flags. */
+export function mineCounter(game: Game): number {
+  const flags = [...game.markers.values()].filter((marker) => marker === "flag").length;
+  return mineCount(game) - flags;
+}
+
 export function statusOf(game: Game): GameStatus {
   return game.status;
 }
 
 export function cellView(game: Game, cell: Coord): CellView {
   if (game.exploded && sameCell(game.exploded, cell)) return { kind: "exploded" };
-  if (!game.revealed.has(indexOf(game.difficulty, cell))) return { kind: "hidden" };
+  const index = indexOf(game.difficulty, cell);
+  if (!game.revealed.has(index)) return { kind: game.markers.get(index) ?? "hidden" };
   return { kind: "revealed", clue: clueAt(game.difficulty, game.mines ?? new Set(), cell) };
 }
 

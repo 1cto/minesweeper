@@ -5,6 +5,10 @@ function spriteFor(view: CellView): string | undefined {
   switch (view.kind) {
     case "hidden":
       return CELL_SPRITES.hidden;
+    case "flag":
+      return CELL_SPRITES.flag;
+    case "question":
+      return CELL_SPRITES.question;
     case "revealed":
       return CELL_SPRITES.clues[view.clue];
     case "exploded":
@@ -12,7 +16,13 @@ function spriteFor(view: CellView): string | undefined {
   }
 }
 
-export function Board({ game, onReveal }: { game: Game; onReveal: (cell: Coord) => void }) {
+type BoardProps = {
+  game: Game;
+  onReveal: (cell: Coord) => void;
+  onCycleMarker: (cell: Coord) => void;
+};
+
+export function Board({ game, onReveal, onCycleMarker }: BoardProps) {
   const { width, height } = game.difficulty;
   const cells: Coord[] = [];
   for (let row = 0; row < height; row++) {
@@ -34,6 +44,9 @@ export function Board({ game, onReveal }: { game: Game; onReveal: (cell: Coord) 
             data-clue={view.kind === "revealed" ? view.clue : undefined}
             aria-label={`Row ${cell.row + 1}, column ${cell.col + 1}`}
             onClick={() => onReveal(cell)}
+            onMouseDown={(event) => {
+              if (event.button === 2) onCycleMarker(cell);
+            }}
           />
         );
       })}
