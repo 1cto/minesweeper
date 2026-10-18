@@ -423,3 +423,18 @@ export const TITLE_SPRITES = {
   minimise: sprite(overlay(TITLE_BUTTON, MINIMISE_GLYPH, 4, 9)),
   close: sprite(overlay(TITLE_BUTTON, CLOSE_GLYPH, 4, 3)),
 };
+
+// Menus (7×7 checkmark)
+
+/** Drawn in black but used as a mask, so it takes the colour of the menu item's text. */
+const CHECKMARK: Bitmap = [
+  "......k",
+  ".....kk",
+  "k...kkk",
+  "kk.kkk.",
+  "kkkkk..",
+  ".kkk...",
+  "..k....",
+];
+
+export const MENU_SPRITES = { check: sprite(CHECKMARK) };

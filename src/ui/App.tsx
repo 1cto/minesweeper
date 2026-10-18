@@ -1,20 +1,19 @@
 import { useState } from "react";
 import {
   applyAction,
-  BEGINNER,
   mineCounter,
   newGame,
   statusOf,
   type Coord,
+  type Difficulty,
   type GameStatus,
   type Layout,
 } from "../engine/game";
 import { Board } from "./Board";
+import { GameMenuBar } from "./GameMenuBar";
 import { StatusPanel } from "./StatusPanel";
+import { loadMarks, saveDifficulty, saveMarks } from "./storage";
 import { Window } from "./Window";
-
-/** Until the Marks (?) menu item exists, the right button can always place Questions. */
-const QUESTIONS_ENABLED = true;
 
 const RESULT_TEXT: Record<GameStatus, string> = {
   ready: "",
@@ -23,9 +22,13 @@ const RESULT_TEXT: Record<GameStatus, string> = {
   lost: "You lost.",
 };
 
-export function App({ initialLayout }: { initialLayout?: Layout }) {
+type AppProps = { initialDifficulty: Difficulty; initialLayout?: Layout };
+
+export function App({ initialDifficulty, initialLayout }: AppProps) {
+  const [difficulty, setDifficulty] = useState(initialDifficulty);
+  const [marks, setMarks] = useState(loadMarks);
   const [game, setGame] = useState(() =>
-    newGame(BEGINNER, { random: Math.random, layout: initialLayout }),
+    newGame(difficulty, { random: Math.random, layout: initialLayout }),
   );
 
   const reveal = (cell: Coord) =>
@@ -35,14 +38,30 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
       applyAction(current, {
         type: "cycleMarker",
         cell,
-        questionsEnabled: QUESTIONS_ENABLED,
+        questionsEnabled: marks,
         now: Date.now(),
       }),
     );
-  const startNewGame = () => setGame(newGame(BEGINNER, { random: Math.random }));
+  const startNewGame = () => setGame(newGame(difficulty, { random: Math.random }));
+  const chooseDifficulty = (choice: Difficulty) => {
+    setDifficulty(choice);
+    saveDifficulty(choice);
+    setGame(newGame(choice, { random: Math.random }));
+  };
+  const toggleMarks = () => {
+    setMarks(!marks);
+    saveMarks(!marks);
+  };
 
   return (
     <Window>
+      <GameMenuBar
+        difficulty={difficulty}
+        onNewGame={startNewGame}
+        onChooseDifficulty={chooseDifficulty}
+        marks={marks}
+        onToggleMarks={toggleMarks}
+      />
       <div className="game" data-testid="game">
         <StatusPanel mines={mineCounter(game)} onNewGame={startNewGame} />
         <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />

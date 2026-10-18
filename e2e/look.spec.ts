@@ -10,8 +10,10 @@ import {
 test("the game is a Windows 95/98 window centred on a teal desktop", async ({ page }) => {
   await page.goto("./");
 
-  // The title text is drawn with a system font, which differs between machines.
-  await expect(page).toHaveScreenshot("desktop.png", { mask: [page.getByTestId("title-text")] });
+  // The title and menu text are drawn with a system font, which differs between machines.
+  await expect(page).toHaveScreenshot("desktop.png", {
+    mask: [page.getByTestId("title-text"), page.getByTestId("menu-text")],
+  });
 });
 
 test("the title bar shows the name and inert minimise and close buttons", async ({ page }) => {
