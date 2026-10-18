@@ -31,7 +31,7 @@ test("a new Game starts with every Cell Hidden", async ({ page }) => {
 });
 
 test("a malformed Layout fails loudly", async ({ page }) => {
-  await page.goto("/?layout=not-a-layout");
+  await page.goto("./?layout=not-a-layout");
 
   await expect(page.getByRole("alert")).toContainText("Invalid layout parameter");
 });
