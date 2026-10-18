@@ -1,6 +1,11 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, type MouseEvent, type ReactNode } from "react";
 import { TITLE_SPRITES } from "./sprites";
 import { useIntegerScale } from "./useIntegerScale";
+
+/** Stops the middle button's autoscroll (on its press) and paste (with its click). */
+function preventMiddleButtonDefault(event: MouseEvent) {
+  if (event.button === 1) event.preventDefault();
+}
 
 /**
  * A Windows 95/98 window on a teal desktop, drawn at the largest whole-number scale that fits
@@ -11,12 +16,14 @@ export function Window({ children }: { children: ReactNode }) {
   useIntegerScale(windowRef);
   return (
     <div className="desktop">
-      {/* The right button belongs to the game, so the browser's context menu never opens here. */}
+      {/* The right and middle buttons belong to the game, not to the browser. */}
       <div
         ref={windowRef}
         className="window"
         data-testid="window"
         onContextMenu={(event) => event.preventDefault()}
+        onMouseDown={preventMiddleButtonDefault}
+        onAuxClick={preventMiddleButtonDefault}
       >
         <div className="title-bar">
           <span className="title-icon sprite" style={{ backgroundImage: TITLE_SPRITES.icon }} />
