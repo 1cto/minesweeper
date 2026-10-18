@@ -384,6 +384,27 @@ const NORMAL_FACE: Bitmap = [
   "......kkkkk......",
 ];
 
+/** The "O" face shown while a button is held on the Board. */
+const SURPRISED_FACE: Bitmap = [
+  "......kkkkk......",
+  "....kkyyyyykk....",
+  "...kyyyyyyyyyk...",
+  "..kyyyyyyyyyyyk..",
+  ".kyyyyyyyyyyyyyk.",
+  ".kyyykkyyykkyyyk.",
+  "kyyyykkyyykkyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyykkkyyyyyyk",
+  ".kyyyykyyykyyyyk.",
+  ".kyyyykyyykyyyyk.",
+  "..kyyyykkkyyyyk..",
+  "...kyyyyyyyyyk...",
+  "....kkyyyyykk....",
+  "......kkkkk......",
+];
+
 /** After a Win: sunglasses over the eyes. */
 const COOL_FACE: Bitmap = [
   "......kkkkk......",
@@ -450,6 +471,7 @@ const SMILEY_BUTTON_PRESSED = bevel(
 export const SMILEY_SPRITES = {
   normal: sprite(overlay(SMILEY_BUTTON, NORMAL_FACE, 4, 4)),
   pressed: sprite(overlay(SMILEY_BUTTON_PRESSED, NORMAL_FACE, 5, 5)),
+  surprised: sprite(overlay(SMILEY_BUTTON, SURPRISED_FACE, 4, 4)),
   cool: sprite(overlay(SMILEY_BUTTON, COOL_FACE, 4, 4)),
   dead: sprite(overlay(SMILEY_BUTTON, DEAD_FACE, 4, 4)),
 };
