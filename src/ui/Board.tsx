@@ -14,8 +14,6 @@ const RIGHT_BUTTON = 2;
 type Gesture = {
   readonly buttons: ReadonlySet<number>;
   readonly over?: Coord;
-  /** After a lone right press, the Game before its marker change, so a Chord can take it back. */
-  readonly beforeMarker?: Game;
 };
 
 function leftAlone(gesture: Gesture): boolean {
@@ -66,8 +64,6 @@ type BoardProps = {
   onReveal: (cell: Coord) => void;
   onCycleMarker: (cell: Coord) => void;
   onChord: (cell: Coord) => void;
-  /** Restores an earlier Game, so a Chord can take back the marker change of its right press. */
-  onTakeBack: (game: Game) => void;
   /** Called with true when a press on the Board begins and with false when it ends. */
   onHoldChange: (holding: boolean) => void;
 };
@@ -77,14 +73,7 @@ type BoardProps = {
  * marker as soon as it is pressed, the left button Reveals the Cell it is released over, and the
  * middle button, or the left and right buttons held together, Chord on the Cell released over.
  */
-export function Board({
-  game,
-  onReveal,
-  onCycleMarker,
-  onChord,
-  onTakeBack,
-  onHoldChange,
-}: BoardProps) {
+export function Board({ game, onReveal, onCycleMarker, onChord, onHoldChange }: BoardProps) {
   const [gesture, setGesture] = useState<Gesture>();
   const { width, height } = game.difficulty;
   const cells: Coord[] = [];
@@ -97,16 +86,11 @@ export function Board({
   const press = (button: number, cell: Coord) => {
     if (ended) return;
     onHoldChange(true);
-    if (!gesture && button === RIGHT_BUTTON) {
-      // A lone right press cycles the marker at once.
-      onCycleMarker(cell);
-      setGesture({ buttons: new Set([button]), over: cell, beforeMarker: game });
-      return;
-    }
-    const next = { buttons: new Set(gesture?.buttons).add(button), over: cell };
-    // A right press that turns into a Chord leaves no marker change behind, whichever came first.
-    if (chording(next) && gesture?.beforeMarker) onTakeBack(gesture.beforeMarker);
-    setGesture(next);
+    // A lone right press cycles the marker at once. As in the original, the change stays even if
+    // a left press then turns the gesture into a Chord; a right press added to a held left one
+    // starts the Chord without touching the marker.
+    if (!gesture && button === RIGHT_BUTTON) onCycleMarker(cell);
+    setGesture({ buttons: new Set(gesture?.buttons).add(button), over: cell });
   };
   /** Ends the gesture; a release over a Cell (rather than off the Board) acts on that Cell. */
   const release = (button: number, cell?: Coord) => {

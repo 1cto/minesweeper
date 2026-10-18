@@ -89,7 +89,6 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
           onReveal={reveal}
           onCycleMarker={cycleMarker}
           onChord={chord}
-          onTakeBack={setGame}
           onHoldChange={setHolding}
         />
       </div>

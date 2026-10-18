@@ -199,29 +199,41 @@ test("a Chord held over a Hidden Cell pushes in the whole block around it, like 
   await expect(page.locator('[data-state="hidden"]')).toHaveCount(81);
 });
 
-for (const [first, second] of [
-  ["left", "right"],
-  ["right", "left"],
-] as const) {
-  for (const releasedFirst of [first, second]) {
-    test(`a two-button Chord pressed ${first} first and released ${releasedFirst} first leaves no marker change and no Reveal`, async ({
-      page,
-    }) => {
-      await openWithLayout(page, SIX_AROUND_ONE_TWO);
-      await pointAt(page, cell(page, 4, 4));
+for (const releasedFirst of ["left", "right"] as const) {
+  test(`a two-button Chord pressed left first and released ${releasedFirst} first leaves no marker change and no Reveal`, async ({
+    page,
+  }) => {
+    await openWithLayout(page, SIX_AROUND_ONE_TWO);
+    await pointAt(page, cell(page, 4, 4));
 
-      await page.mouse.down({ button: first });
-      // A lone right press still cycles the marker at once; the Chord then takes the change back.
-      if (first === "right") await expect(cell(page, 4, 4)).toHaveAttribute("data-state", "flag");
-      await page.mouse.down({ button: second });
-      await expect(cell(page, 4, 4)).toHaveAttribute("data-pressed", "true");
-      await page.mouse.up({ button: releasedFirst });
-      await page.mouse.up({ button: releasedFirst === first ? second : first });
+    await page.mouse.down({ button: "left" });
+    await page.mouse.down({ button: "right" });
+    await expect(cell(page, 4, 4)).toHaveAttribute("data-pressed", "true");
+    await page.mouse.up({ button: releasedFirst });
+    await page.mouse.up({ button: releasedFirst === "left" ? "right" : "left" });
 
-      await expect(page.locator('[data-state="hidden"]')).toHaveCount(81);
-      await expect(page.getByTestId("mine-counter")).toHaveAccessibleName("Mine counter: 006");
-    });
-  }
+    await expect(page.locator('[data-state="hidden"]')).toHaveCount(81);
+    await expect(page.getByTestId("mine-counter")).toHaveAccessibleName("Mine counter: 006");
+  });
+
+  test(`a right press that turns into a Chord keeps its Flag, like the original, and Reveals nothing (released ${releasedFirst} first)`, async ({
+    page,
+  }) => {
+    await openWithLayout(page, SIX_AROUND_ONE_TWO);
+    await pointAt(page, cell(page, 4, 4));
+
+    // A lone right press cycles the marker at once, and the Chord that follows leaves it there.
+    await page.mouse.down({ button: "right" });
+    await expect(cell(page, 4, 4)).toHaveAttribute("data-state", "flag");
+    await page.mouse.down({ button: "left" });
+    await expect(cell(page, 4, 5)).toHaveAttribute("data-pressed", "true");
+    await page.mouse.up({ button: releasedFirst });
+    await page.mouse.up({ button: releasedFirst === "left" ? "right" : "left" });
+
+    await expect(cell(page, 4, 4)).toHaveAttribute("data-state", "flag");
+    await expect(page.locator('[data-state="hidden"]')).toHaveCount(80);
+    await expect(page.getByTestId("mine-counter")).toHaveAccessibleName("Mine counter: 005");
+  });
 }
 
 test("a held Chord and the O face are drawn", async ({ page }) => {
