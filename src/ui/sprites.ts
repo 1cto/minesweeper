@@ -361,6 +361,27 @@ const NORMAL_FACE: Bitmap = [
   "......kkkkk......",
 ];
 
+/** The "O" face shown while a button is held on the Board. */
+const SURPRISED_FACE: Bitmap = [
+  "......kkkkk......",
+  "....kkyyyyykk....",
+  "...kyyyyyyyyyk...",
+  "..kyyyyyyyyyyyk..",
+  ".kyyyyyyyyyyyyyk.",
+  ".kyyykkyyykkyyyk.",
+  "kyyyykkyyykkyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyykkkyyyyyyk",
+  ".kyyyykyyykyyyyk.",
+  ".kyyyykyyykyyyyk.",
+  "..kyyyykkkyyyyk..",
+  "...kyyyyyyyyyk...",
+  "....kkyyyyykk....",
+  "......kkkkk......",
+];
+
 const SMILEY_BUTTON = bevel(
   26,
   26,
@@ -385,6 +406,7 @@ const SMILEY_BUTTON_PRESSED = bevel(
 export const SMILEY_SPRITES = {
   normal: sprite(overlay(SMILEY_BUTTON, NORMAL_FACE, 4, 4)),
   pressed: sprite(overlay(SMILEY_BUTTON_PRESSED, NORMAL_FACE, 5, 5)),
+  surprised: sprite(overlay(SMILEY_BUTTON, SURPRISED_FACE, 4, 4)),
 };
 
 // Title bar (16×14 buttons, 16×16 icon)
