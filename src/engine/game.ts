@@ -23,7 +23,11 @@ export type CellView =
   | { readonly kind: "hidden" }
   | { readonly kind: Marker }
   | { readonly kind: "revealed"; readonly clue: number }
-  | { readonly kind: "exploded" };
+  | { readonly kind: "exploded" }
+  /** After a Loss: a Mine that was neither Revealed nor Flagged. */
+  | { readonly kind: "mine" }
+  /** After a Loss: a Flag on a Cell without a Mine. */
+  | { readonly kind: "wrongFlag" };
 
 export type Action =
   | { readonly type: "reveal"; readonly cell: Coord; readonly now: number }
@@ -117,6 +121,8 @@ function reveal(game: Game, cell: Coord): Game {
     if (clueAt(difficulty, mines, next) === 0) pending.push(...neighborsOf(difficulty, next));
   }
   const won = revealed.size === difficulty.width * difficulty.height - mines.size;
+  // On a Win every Mine gets a Flag, replacing any Question, so the mine counter reads 0.
+  if (won) for (const mine of mines) markers.set(mine, "flag");
   return { ...game, mines, status: won ? "won" : "playing", revealed, markers };
 }
 
@@ -151,8 +157,16 @@ export function elapsedSeconds(game: Game, now: number): number {
 export function cellView(game: Game, cell: Coord): CellView {
   if (game.exploded && sameCell(game.exploded, cell)) return { kind: "exploded" };
   const index = indexOf(game.difficulty, cell);
-  if (!game.revealed.has(index)) return { kind: game.markers.get(index) ?? "hidden" };
-  return { kind: "revealed", clue: clueAt(game.difficulty, game.mines ?? new Set(), cell) };
+  if (game.revealed.has(index)) {
+    return { kind: "revealed", clue: clueAt(game.difficulty, game.mines ?? new Set(), cell) };
+  }
+  const marker = game.markers.get(index);
+  if (game.status === "lost") {
+    const hasMine = game.mines?.has(index) ?? false;
+    if (marker === "flag") return { kind: hasMine ? "flag" : "wrongFlag" };
+    if (hasMine) return { kind: "mine" };
+  }
+  return { kind: marker ?? "hidden" };
 }
 
 /** Places the Difficulty's Mines uniformly at random on every Cell except `safeIndex`. */

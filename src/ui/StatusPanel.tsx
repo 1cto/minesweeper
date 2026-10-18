@@ -34,7 +34,7 @@ type StatusPanelProps = {
 
 export function StatusPanel({ mines, seconds, face, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
-    "--sprite": face === "surprised" ? SMILEY_SPRITES.surprised : SMILEY_SPRITES.normal,
+    "--sprite": SMILEY_SPRITES[face],
     "--sprite-pressed": SMILEY_SPRITES.pressed,
   } as CSSProperties;
 

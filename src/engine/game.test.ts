@@ -162,7 +162,7 @@ describe("the end of a Game", () => {
 
     expect(statusOf(won)).toBe("won");
     expect(statusOf(after)).toBe("won");
-    expect(cellView(after, { row: 0, col: 0 })).toEqual({ kind: "hidden" });
+    expect(cellView(after, { row: 0, col: 0 })).toEqual({ kind: "flag" });
   });
 });
 
@@ -259,7 +259,7 @@ describe("Flags and Questions", () => {
 
     const next = revealOrMark(game, [reveal(corner), cycleMarker({ row: 2, col: 2 })]);
 
-    expect(cellView(next, { row: 2, col: 2 }).kind).toBe("hidden");
+    expect(cellView(next, { row: 2, col: 2 }).kind).toBe("mine");
   });
 });
 

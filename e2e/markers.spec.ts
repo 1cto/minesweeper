@@ -34,7 +34,10 @@ test("the left button leaves a Flagged Cell alone", async ({ page }) => {
   await cell(page, 0, 0).click();
 
   await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "flag");
-  await expect(page.getByRole("status")).toHaveText("");
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute(
+    "data-face",
+    "normal",
+  );
 });
 
 test("the left button Reveals a Cell that carries a Question", async ({ page }) => {
@@ -44,7 +47,8 @@ test("the left button Reveals a Cell that carries a Question", async ({ page }) 
 
   await cell(page, 8, 8).click();
 
-  await expect(page.getByRole("status")).toHaveText("You won!");
+  await expect(cell(page, 8, 8)).toHaveAttribute("data-state", "revealed");
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
 });
 
 test("the browser's context menu never opens over the window", async ({ page }) => {

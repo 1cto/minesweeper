@@ -18,11 +18,11 @@ import { Window } from "./Window";
 /** Until the Marks (?) menu item exists, the right button can always place Questions. */
 const QUESTIONS_ENABLED = true;
 
-const RESULT_TEXT: Record<GameStatus, string> = {
-  ready: "",
-  playing: "",
-  won: "You won!",
-  lost: "You lost.",
+const FACE: Record<GameStatus, Face> = {
+  ready: "normal",
+  playing: "normal",
+  won: "cool",
+  lost: "dead",
 };
 
 export function App({ initialLayout }: { initialLayout?: Layout }) {
@@ -31,8 +31,10 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   );
   /** Whether a mouse button pressed on the Board is still held. */
   const [holding, setHolding] = useState(false);
-  const face: Face = holding ? "surprised" : "normal";
-  const now = useClock(statusOf(game) === "playing");
+  const status = statusOf(game);
+  // The Win and Loss faces outrank the surprised face shown while a button is held.
+  const face: Face = holding && FACE[status] === "normal" ? "surprised" : FACE[status];
+  const now = useClock(status === "playing");
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -63,9 +65,6 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
           onHoldChange={setHolding}
         />
       </div>
-      <p role="status" className="visually-hidden">
-        {RESULT_TEXT[statusOf(game)]}
-      </p>
     </Window>
   );
 }

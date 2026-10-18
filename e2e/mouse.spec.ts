@@ -108,9 +108,7 @@ test("the smiley shows the O face while a button is held on the Board", async ({
   await expect(smiley).toHaveAttribute("data-face", "normal");
 });
 
-test("once the Game is lost nothing looks pressed and the face doesn't change", async ({
-  page,
-}) => {
+test("once the Game is lost nothing looks pressed and the face stays dead", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
   await cell(page, 0, 0).click();
   await pointAt(page, cell(page, 1, 1));
@@ -118,10 +116,18 @@ test("once the Game is lost nothing looks pressed and the face doesn't change", 
   await page.mouse.down();
 
   await expect(pressedCells(page)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "New game" })).not.toHaveAttribute(
-    "data-face",
-    "surprised",
-  );
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "dead");
+});
+
+test("once the Game is won nothing looks pressed and the face stays cool", async ({ page }) => {
+  await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
+  await cell(page, 8, 8).click();
+  await pointAt(page, cell(page, 0, 0));
+
+  await page.mouse.down();
+
+  await expect(pressedCells(page)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
 });
 
 test("a pressed Cell and the O face are drawn", async ({ page }) => {
