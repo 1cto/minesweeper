@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   applyAction,
+  elapsedSeconds,
   mineCounter,
   newGame,
   statusOf,
@@ -13,6 +14,7 @@ import { Board } from "./Board";
 import { GameMenuBar } from "./GameMenuBar";
 import { StatusPanel } from "./StatusPanel";
 import { loadMarks, saveDifficulty, saveMarks } from "./storage";
+import { useClock } from "./useClock";
 import { Window } from "./Window";
 
 const RESULT_TEXT: Record<GameStatus, string> = {
@@ -30,6 +32,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   const [game, setGame] = useState(() =>
     newGame(difficulty, { random: Math.random, layout: initialLayout }),
   );
+  const now = useClock(statusOf(game) === "playing");
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -63,7 +66,11 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         onToggleMarks={toggleMarks}
       />
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCounter(game)} onNewGame={startNewGame} />
+        <StatusPanel
+          mines={mineCounter(game)}
+          seconds={elapsedSeconds(game, now)}
+          onNewGame={startNewGame}
+        />
         <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
       </div>
       <p role="status" className="visually-hidden">

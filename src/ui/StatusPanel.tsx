@@ -22,7 +22,13 @@ function LedCounter({ label, value, testId }: { label: string; value: number; te
   );
 }
 
-export function StatusPanel({ mines, onNewGame }: { mines: number; onNewGame: () => void }) {
+type StatusPanelProps = {
+  mines: number;
+  seconds: number;
+  onNewGame: () => void;
+};
+
+export function StatusPanel({ mines, seconds, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
     "--sprite": SMILEY_SPRITES.normal,
     "--sprite-pressed": SMILEY_SPRITES.pressed,
@@ -38,7 +44,7 @@ export function StatusPanel({ mines, onNewGame }: { mines: number; onNewGame: ()
         style={smileyStyle}
         onClick={onNewGame}
       />
-      <LedCounter label="Timer" value={0} testId="timer" />
+      <LedCounter label="Timer" value={seconds} testId="timer" />
     </div>
   );
 }

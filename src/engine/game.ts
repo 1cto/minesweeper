@@ -48,6 +48,10 @@ export type Game = {
   readonly revealed: ReadonlySet<number>;
   readonly markers: ReadonlyMap<number, Marker>;
   readonly exploded?: Coord;
+  /** The `now` of the first Reveal, which starts the timer. */
+  readonly startedAt?: number;
+  /** The `now` of the action that ended the Game, which stops the timer. */
+  readonly endedAt?: number;
 };
 
 export function newGame(
@@ -67,6 +71,18 @@ export function newGame(
 
 export function applyAction(game: Game, action: Action): Game {
   if (game.status === "won" || game.status === "lost") return game;
+  return clocked(game, play(game, action), action.now);
+}
+
+/** Starts the timer when an action takes the Game out of "ready" and stops it when the Game ends. */
+function clocked(before: Game, after: Game, now: number): Game {
+  const starts = before.status === "ready" && after.status !== "ready";
+  const ends = after.status === "won" || after.status === "lost";
+  if (!starts && !ends) return after;
+  return { ...after, startedAt: starts ? now : after.startedAt, endedAt: ends ? now : undefined };
+}
+
+function play(game: Game, action: Action): Game {
   switch (action.type) {
     case "reveal":
       return reveal(game, action.cell);
@@ -128,6 +144,13 @@ export function mineCounter(game: Game): number {
 
 export function statusOf(game: Game): GameStatus {
   return game.status;
+}
+
+/** Whole seconds on the timer at `now`, capped at 999 like the three-digit display. */
+export function elapsedSeconds(game: Game, now: number): number {
+  if (game.startedAt === undefined) return 0;
+  const seconds = Math.floor(((game.endedAt ?? now) - game.startedAt) / 1000);
+  return Math.min(Math.max(seconds, 0), 999);
 }
 
 export function cellView(game: Game, cell: Coord): CellView {
