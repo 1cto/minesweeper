@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   applyAction,
   BEGINNER,
+  elapsedSeconds,
   mineCounter,
   newGame,
   statusOf,
@@ -11,6 +12,7 @@ import {
 } from "../engine/game";
 import { Board } from "./Board";
 import { StatusPanel } from "./StatusPanel";
+import { useClock } from "./useClock";
 import { Window } from "./Window";
 
 /** Until the Marks (?) menu item exists, the right button can always place Questions. */
@@ -27,6 +29,7 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   const [game, setGame] = useState(() =>
     newGame(BEGINNER, { random: Math.random, layout: initialLayout }),
   );
+  const now = useClock(statusOf(game) === "playing");
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -44,7 +47,11 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   return (
     <Window>
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCounter(game)} onNewGame={startNewGame} />
+        <StatusPanel
+          mines={mineCounter(game)}
+          seconds={elapsedSeconds(game, now)}
+          onNewGame={startNewGame}
+        />
         <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
       </div>
       <p role="status" className="visually-hidden">
