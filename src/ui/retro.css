@@ -49,8 +49,12 @@ body {
   height: 16px;
 }
 
+/* A fixed box: the system font differs between machines, so it must not change the layout. */
 .title-text {
   flex: 1;
+  height: 14px;
+  line-height: 14px;
+  overflow: hidden;
   color: var(--highlight);
   font:
     bold 11px Tahoma,
