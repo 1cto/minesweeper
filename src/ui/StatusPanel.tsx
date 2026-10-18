@@ -25,15 +25,14 @@ function LedCounter({ label, value, testId }: { label: string; value: number; te
 /** The smiley's expression. */
 export type Face = "normal" | "surprised" | "cool" | "dead";
 
-export function StatusPanel({
-  mines,
-  face,
-  onNewGame,
-}: {
+type StatusPanelProps = {
   mines: number;
+  seconds: number;
   face: Face;
   onNewGame: () => void;
-}) {
+};
+
+export function StatusPanel({ mines, seconds, face, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
     "--sprite": face === "surprised" ? SMILEY_SPRITES.surprised : SMILEY_SPRITES.normal,
     "--sprite-pressed": SMILEY_SPRITES.pressed,
@@ -50,7 +49,7 @@ export function StatusPanel({
         data-face={face}
         onClick={onNewGame}
       />
-      <LedCounter label="Timer" value={0} testId="timer" />
+      <LedCounter label="Timer" value={seconds} testId="timer" />
     </div>
   );
 }

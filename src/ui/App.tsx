@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   applyAction,
   BEGINNER,
+  elapsedSeconds,
   mineCounter,
   newGame,
   statusOf,
@@ -11,6 +12,7 @@ import {
 } from "../engine/game";
 import { Board } from "./Board";
 import { StatusPanel, type Face } from "./StatusPanel";
+import { useClock } from "./useClock";
 import { Window } from "./Window";
 
 /** Until the Marks (?) menu item exists, the right button can always place Questions. */
@@ -30,6 +32,7 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   /** Whether a mouse button pressed on the Board is still held. */
   const [holding, setHolding] = useState(false);
   const face: Face = holding ? "surprised" : "normal";
+  const now = useClock(statusOf(game) === "playing");
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -47,7 +50,12 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   return (
     <Window>
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCounter(game)} face={face} onNewGame={startNewGame} />
+        <StatusPanel
+          mines={mineCounter(game)}
+          seconds={elapsedSeconds(game, now)}
+          face={face}
+          onNewGame={startNewGame}
+        />
         <Board
           game={game}
           onReveal={reveal}
