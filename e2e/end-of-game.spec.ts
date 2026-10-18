@@ -24,6 +24,16 @@ const MINES_OF_CORNERS_AND_ONE_INSIDE = [
 
 const smiley = (page: Page) => page.getByRole("button", { name: "New game" });
 
+/**
+ * Stops the clock before the page loads, so a screenshot never depends on how long the clicks
+ * took: the timer reads 000 however much real time passes between the first Reveal and the end.
+ */
+async function freezeClock(page: Page) {
+  const time = new Date("2026-01-01T00:00:00Z");
+  await page.clock.install({ time });
+  await page.clock.setFixedTime(time);
+}
+
 /** A Win with a Flag on (0, 0) and a Question on (3, 3) placed beforehand. */
 async function win(page: Page) {
   await openWithLayout(page, CORNERS_AND_ONE_INSIDE);
@@ -61,6 +71,7 @@ async function presentation(page: Page) {
 test("a Win Flags every Mine, the mine counter reads 000 and the smiley wears sunglasses", async ({
   page,
 }) => {
+  await freezeClock(page);
   await win(page);
 
   for (const [row, col] of MINES_OF_CORNERS_AND_ONE_INSIDE) {
@@ -75,6 +86,7 @@ test("a Win Flags every Mine, the mine counter reads 000 and the smiley wears su
 test("a Loss shows the exploded Mine, the other Mines and the wrong Flag, and the smiley is dead", async ({
   page,
 }) => {
+  await freezeClock(page);
   await lose(page);
 
   await expect(cell(page, 8, 8)).toHaveAttribute("data-state", "exploded");
