@@ -1,15 +1,21 @@
 import type { CSSProperties } from "react";
-import { LED_DIGITS, SMILEY_SPRITES } from "./sprites";
+import { LED_DIGITS, LED_MINUS, SMILEY_SPRITES } from "./sprites";
+
+/** Three counter characters: "-07" for negatives down to -99, "042" otherwise up to 999. */
+function ledText(value: number): string {
+  if (value < 0) return "-" + String(Math.min(-value, 99)).padStart(2, "0");
+  return String(Math.min(value, 999)).padStart(3, "0");
+}
 
 function LedCounter({ label, value, testId }: { label: string; value: number; testId: string }) {
-  const digits = String(Math.min(Math.max(value, 0), 999)).padStart(3, "0");
+  const text = ledText(value);
   return (
-    <div className="led" role="img" aria-label={`${label}: ${digits}`} data-testid={testId}>
-      {[...digits].map((digit, i) => (
+    <div className="led" role="img" aria-label={`${label}: ${text}`} data-testid={testId}>
+      {[...text].map((char, i) => (
         <span
           key={i}
           className="led-digit sprite"
-          style={{ backgroundImage: LED_DIGITS[Number(digit)] }}
+          style={{ backgroundImage: char === "-" ? LED_MINUS : LED_DIGITS[Number(char)] }}
         />
       ))}
     </div>

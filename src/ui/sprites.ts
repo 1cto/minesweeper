@@ -222,8 +222,36 @@ const MINE: Bitmap = [
   "......k......",
 ];
 
+const FLAG: Bitmap = [
+  "....rrk...",
+  "..rrrrk...",
+  ".rrrrrk...",
+  "..rrrrk...",
+  "....rrk...",
+  "......k...",
+  "......k...",
+  "....kkkk..",
+  "..kkkkkkkk",
+  "..kkkkkkkk",
+];
+
+const QUESTION: Bitmap = [
+  ".kkkkkk.",
+  "kkkkkkkk",
+  "kk....kk",
+  "......kk",
+  "....kkk.",
+  "...kkk..",
+  "...kk...",
+  "........",
+  "...kk...",
+  "...kk...",
+];
+
 export const CELL_SPRITES = {
   hidden: sprite(HIDDEN_CELL),
+  flag: sprite(overlay(HIDDEN_CELL, FLAG, 2, 3)),
+  question: sprite(overlay(HIDDEN_CELL, QUESTION, 4, 3)),
   clues: Array.from({ length: 9 }, (_, clue) => {
     const glyph = CLUE_GLYPHS[clue];
     const color = CLUE_COLORS[clue];
@@ -308,6 +336,8 @@ function ledDigit(lit: readonly Segment[]): Bitmap {
 }
 
 export const LED_DIGITS = DIGIT_SEGMENTS.map((lit) => sprite(ledDigit(lit)));
+
+export const LED_MINUS = sprite(ledDigit(["g"]));
 
 // The smiley button (26×26)
 

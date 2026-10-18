@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   applyAction,
   BEGINNER,
-  mineCount,
+  mineCounter,
   newGame,
   statusOf,
   type Coord,
@@ -12,6 +12,9 @@ import {
 import { Board } from "./Board";
 import { StatusPanel } from "./StatusPanel";
 import { Window } from "./Window";
+
+/** Until the Marks (?) menu item exists, the right button can always place Questions. */
+const QUESTIONS_ENABLED = true;
 
 const RESULT_TEXT: Record<GameStatus, string> = {
   ready: "",
@@ -27,13 +30,22 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
+  const cycleMarker = (cell: Coord) =>
+    setGame((current) =>
+      applyAction(current, {
+        type: "cycleMarker",
+        cell,
+        questionsEnabled: QUESTIONS_ENABLED,
+        now: Date.now(),
+      }),
+    );
   const startNewGame = () => setGame(newGame(BEGINNER, { random: Math.random }));
 
   return (
     <Window>
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCount(game)} onNewGame={startNewGame} />
-        <Board game={game} onReveal={reveal} />
+        <StatusPanel mines={mineCounter(game)} onNewGame={startNewGame} />
+        <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
       </div>
       <p role="status" className="visually-hidden">
         {RESULT_TEXT[statusOf(game)]}

@@ -5,8 +5,10 @@ import {
   cellView,
   layoutOf,
   mineCount,
+  mineCounter,
   newGame,
   statusOf,
+  type Action,
   type Coord,
   type Difficulty,
   type Game,
@@ -41,15 +43,28 @@ function reveal(cell: Coord, now = 0) {
   return { type: "reveal", cell, now } as const;
 }
 
-/** Draws the Board as the player sees it: "#" Hidden, a digit for a Revealed Cell's Clue. */
+/**
+ * Draws the Board as the player sees it: "#" Hidden, "F" Flag, "?" Question,
+ * a digit for a Revealed Cell's Clue.
+ */
 function picture(game: Game): string[] {
   const { width, height } = game.difficulty;
   return Array.from({ length: height }, (_, row) =>
     Array.from({ length: width }, (_, col) => {
       const view = cellView(game, { row, col });
+      if (view.kind === "flag") return "F";
+      if (view.kind === "question") return "?";
       return view.kind === "revealed" ? String(view.clue) : "#";
     }).join(""),
   );
+}
+
+function cycleMarker(cell: Coord, questionsEnabled = true, now = 0) {
+  return { type: "cycleMarker", cell, questionsEnabled, now } as const;
+}
+
+function revealOrMark(game: Game, actions: Action[]): Game {
+  return actions.reduce(applyAction, game);
 }
 
 function revealAll(game: Game, cells: Coord[]): Game {
@@ -112,6 +127,45 @@ describe("Reveal", () => {
     const next = applyAction(game, reveal({ row: 0, col: 4 }));
 
     expect(picture(next)).toEqual(["###20", "###30", "###20"]);
+  });
+});
+
+describe("Reveal with markers", () => {
+  const game = () =>
+    newGame(WIDE_5x3, {
+      random: unusedRandom,
+      layout: layoutFrom(["..x..", "..x..", "..x.."]),
+    });
+
+  it("leaves a Flagged Cell Hidden", () => {
+    const mine = { row: 0, col: 2 };
+
+    const next = revealOrMark(game(), [cycleMarker(mine), reveal(mine)]);
+
+    expect({ status: statusOf(next), view: cellView(next, mine).kind }).toEqual({
+      status: "ready",
+      view: "flag",
+    });
+  });
+
+  it("Reveals a Cell that carries a Question", () => {
+    const cell = { row: 1, col: 3 };
+
+    const next = revealOrMark(game(), [cycleMarker(cell), cycleMarker(cell), reveal(cell)]);
+
+    expect(cellView(next, cell)).toEqual({ kind: "revealed", clue: 3 });
+  });
+
+  it("Cascades through Questions but leaves Flagged Cells Hidden", () => {
+    const next = revealOrMark(game(), [
+      cycleMarker({ row: 1, col: 4 }),
+      cycleMarker({ row: 0, col: 3 }),
+      cycleMarker({ row: 0, col: 3 }),
+      reveal({ row: 0, col: 4 }),
+    ]);
+
+    // The Flag on the 0-Clue Cell (1, 4) also stops the Cascade from reaching row 2.
+    expect(picture(next)).toEqual(["###20", "###3F", "#####"]);
   });
 });
 
@@ -209,5 +263,94 @@ describe("the Layout", () => {
     const next = applyAction(game, reveal({ row: 0, col: 0 }));
 
     expect(statusOf(next)).toBe("lost");
+  });
+});
+
+describe("Flags and Questions", () => {
+  const corner = { row: 0, col: 0 };
+
+  it("cycles a Hidden Cell from unmarked to Flag to Question and back", () => {
+    const game = newGame(SQUARE_3, { random: unusedRandom });
+
+    const flagged = applyAction(game, cycleMarker(corner));
+    const questioned = applyAction(flagged, cycleMarker(corner));
+    const unmarked = applyAction(questioned, cycleMarker(corner));
+
+    expect([flagged, questioned, unmarked].map((g) => cellView(g, corner).kind)).toEqual([
+      "flag",
+      "question",
+      "hidden",
+    ]);
+  });
+
+  it("toggles only a Flag when Questions are disabled, clearing an existing Question", () => {
+    const game = newGame(SQUARE_3, { random: unusedRandom });
+    const questioned = revealOrMark(game, [cycleMarker(corner), cycleMarker(corner)]);
+
+    const cleared = applyAction(questioned, cycleMarker(corner, false));
+    const flagged = applyAction(cleared, cycleMarker(corner, false));
+    const unflagged = applyAction(flagged, cycleMarker(corner, false));
+
+    expect([cleared, flagged, unflagged].map((g) => cellView(g, corner).kind)).toEqual([
+      "hidden",
+      "flag",
+      "hidden",
+    ]);
+  });
+
+  it("ignores the marker cycle on a Revealed Cell", () => {
+    const game = newGame(SQUARE_3, {
+      random: unusedRandom,
+      layout: layoutFrom(["x..", "...", "..x"]),
+    });
+    const center = { row: 1, col: 1 };
+
+    const next = revealOrMark(game, [reveal(center), cycleMarker(center)]);
+
+    expect(cellView(next, center)).toEqual({ kind: "revealed", clue: 2 });
+  });
+
+  it("ignores the marker cycle after the Game ends", () => {
+    const game = newGame(SQUARE_3, {
+      random: unusedRandom,
+      layout: layoutFrom(["x..", "...", "..x"]),
+    });
+
+    const next = revealOrMark(game, [reveal(corner), cycleMarker({ row: 2, col: 2 })]);
+
+    expect(cellView(next, { row: 2, col: 2 }).kind).toBe("hidden");
+  });
+});
+
+describe("the mine counter", () => {
+  const twoMines = () =>
+    newGame(SQUARE_3, { random: unusedRandom, layout: layoutFrom(["x..", "...", "..x"]) });
+
+  it("is the Mine count minus the Flags, and Questions don't count", () => {
+    const next = revealOrMark(twoMines(), [
+      cycleMarker({ row: 0, col: 1 }),
+      cycleMarker({ row: 0, col: 2 }),
+      cycleMarker({ row: 0, col: 2 }),
+    ]);
+
+    expect(mineCounter(next)).toBe(1);
+  });
+
+  it("goes negative when there are more Flags than Mines", () => {
+    const next = revealOrMark(twoMines(), [
+      cycleMarker({ row: 0, col: 1 }),
+      cycleMarker({ row: 0, col: 2 }),
+      cycleMarker({ row: 1, col: 0 }),
+    ]);
+
+    expect(mineCounter(next)).toBe(-1);
+  });
+
+  it("is unchanged by the marker cycle on a Revealed Cell", () => {
+    const center = { row: 1, col: 1 };
+
+    const next = revealOrMark(twoMines(), [reveal(center), cycleMarker(center)]);
+
+    expect(mineCounter(next)).toBe(2);
   });
 });
