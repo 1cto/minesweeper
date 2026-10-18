@@ -18,6 +18,7 @@ body {
   background: var(--desktop);
 }
 
+/* A window too big for the viewport widens the grid to the right, so the page scrolls to it all. */
 .desktop {
   min-height: 100vh;
   display: grid;

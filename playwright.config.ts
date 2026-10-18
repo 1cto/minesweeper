@@ -14,7 +14,14 @@ export default defineConfig({
     baseURL: `http://localhost:${port}/minesweeper/`,
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      // Low enough that every Difficulty is drawn at ×1, so screenshots show the window at its
+      // original size; scale.spec.ts sets its own viewports to test the larger scales.
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 500 } },
+    },
+  ],
   webServer: {
     command: `pnpm build:e2e && pnpm preview --outDir dist-e2e --port ${port} --strictPort`,
     port,
