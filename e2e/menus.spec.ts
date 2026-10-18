@@ -106,8 +106,9 @@ test("a test-only Layout applies to the Difficulty the Game starts on", async ({
   await openWithLayout(page, oneMineInTheCorner);
   await cell(page, 15, 15).click();
 
-  await expect(page.getByTestId("mine-counter")).toHaveAccessibleName("Mine counter: 001");
-  await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "hidden");
+  // The Reveal Cascades into a Win, which Flags the only Mine exactly where the Layout put it.
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
+  await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "flag");
   await expect(cell(page, 1, 1)).toHaveAttribute("data-clue", "1");
   await expect(cell(page, 0, 15)).toHaveAttribute("data-clue", "0");
 });

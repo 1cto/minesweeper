@@ -39,7 +39,8 @@ export function reveal(cell: Coord, now = 0) {
 
 /**
  * Draws the Board as the player sees it: "#" Hidden, "F" Flag, "?" Question,
- * a digit for a Revealed Cell's Clue.
+ * a digit for a Revealed Cell's Clue; after a Loss, "!" the exploded Mine,
+ * "*" another Mine and "X" a wrong Flag.
  */
 export function picture(game: Game): string[] {
   const { width, height } = game.difficulty;
@@ -48,6 +49,9 @@ export function picture(game: Game): string[] {
       const view = cellView(game, { row, col });
       if (view.kind === "flag") return "F";
       if (view.kind === "question") return "?";
+      if (view.kind === "exploded") return "!";
+      if (view.kind === "mine") return "*";
+      if (view.kind === "wrongFlag") return "X";
       return view.kind === "revealed" ? String(view.clue) : "#";
     }).join(""),
   );

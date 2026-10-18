@@ -12,16 +12,16 @@ import {
 } from "../engine/game";
 import { Board } from "./Board";
 import { GameMenuBar } from "./GameMenuBar";
-import { StatusPanel } from "./StatusPanel";
+import { StatusPanel, type Face } from "./StatusPanel";
 import { loadMarks, saveDifficulty, saveMarks } from "./storage";
 import { useClock } from "./useClock";
 import { Window } from "./Window";
 
-const RESULT_TEXT: Record<GameStatus, string> = {
-  ready: "",
-  playing: "",
-  won: "You won!",
-  lost: "You lost.",
+const FACE: Record<GameStatus, Face> = {
+  ready: "normal",
+  playing: "normal",
+  won: "cool",
+  lost: "dead",
 };
 
 type AppProps = { initialDifficulty: Difficulty; initialLayout?: Layout };
@@ -69,13 +69,11 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         <StatusPanel
           mines={mineCounter(game)}
           seconds={elapsedSeconds(game, now)}
+          face={FACE[statusOf(game)]}
           onNewGame={startNewGame}
         />
         <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
       </div>
-      <p role="status" className="visually-hidden">
-        {RESULT_TEXT[statusOf(game)]}
-      </p>
     </Window>
   );
 }
