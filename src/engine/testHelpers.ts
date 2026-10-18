@@ -61,6 +61,10 @@ export function cycleMarker(cell: Coord, questionsEnabled = true, now = 0) {
   return { type: "cycleMarker", cell, questionsEnabled, now } as const;
 }
 
+export function chord(cell: Coord, now = 0) {
+  return { type: "chord", cell, now } as const;
+}
+
 export function revealOrMark(game: Game, actions: Action[]): Game {
   return actions.reduce(applyAction, game);
 }

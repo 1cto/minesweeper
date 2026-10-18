@@ -50,6 +50,8 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         now: Date.now(),
       }),
     );
+  const chord = (cell: Coord) =>
+    setGame((current) => applyAction(current, { type: "chord", cell, now: Date.now() }));
   const startNewGame = () => setGame(newGame(difficulty, { random: Math.random }));
   const chooseDifficulty = (choice: Difficulty) => {
     setDifficulty(choice);
@@ -81,6 +83,8 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
           game={game}
           onReveal={reveal}
           onCycleMarker={cycleMarker}
+          onChord={chord}
+          onTakeBack={setGame}
           onHoldChange={setHolding}
         />
       </div>

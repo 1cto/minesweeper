@@ -41,7 +41,8 @@ export type Action =
       readonly cell: Coord;
       readonly questionsEnabled: boolean;
       readonly now: number;
-    };
+    }
+  | { readonly type: "chord"; readonly cell: Coord; readonly now: number };
 
 export type Game = {
   readonly difficulty: Difficulty;
@@ -51,7 +52,8 @@ export type Game = {
   readonly mines?: ReadonlySet<number>;
   readonly revealed: ReadonlySet<number>;
   readonly markers: ReadonlyMap<number, Marker>;
-  readonly exploded?: Coord;
+  /** Cell indexes of the Mines that lost the Game: one for a Reveal, one per wrong Flag for a Chord. */
+  readonly exploded?: ReadonlySet<number>;
   /** The `now` of the first Reveal, which starts the timer. */
   readonly startedAt?: number;
   /** The `now` of the action that ended the Game, which stops the timer. */
@@ -92,7 +94,23 @@ function play(game: Game, action: Action): Game {
       return reveal(game, action.cell);
     case "cycleMarker":
       return cycleMarker(game, action.cell, action.questionsEnabled);
+    case "chord":
+      return chord(game, action.cell);
   }
+}
+
+/**
+ * On a Revealed Cell whose Clue equals its number of Flagged Neighbors, Reveals the other Hidden
+ * Neighbors at once; on any other Cell it does nothing.
+ */
+function chord(game: Game, cell: Coord): Game {
+  const { difficulty, mines } = game;
+  if (!mines || !game.revealed.has(indexOf(difficulty, cell))) return game;
+  const neighbors = neighborsOf(difficulty, cell);
+  const flagged = (neighbor: Coord) => game.markers.get(indexOf(difficulty, neighbor)) === "flag";
+  if (neighbors.filter(flagged).length !== clueAt(difficulty, mines, cell)) return game;
+  const others = neighbors.filter((neighbor) => !flagged(neighbor));
+  return uncover(game, mines, others);
 }
 
 /** Unmarked → Flag → Question → unmarked; without Questions, unmarked ↔ Flag. */
@@ -108,16 +126,24 @@ function cycleMarker(game: Game, cell: Coord, questionsEnabled: boolean): Game {
 }
 
 function reveal(game: Game, cell: Coord): Game {
-  const { difficulty } = game;
-  const target = indexOf(difficulty, cell);
+  const target = indexOf(game.difficulty, cell);
   if (game.markers.get(target) === "flag") return game;
-  const mines = game.mines ?? placeMines(difficulty, target, game.random);
-  if (mines.has(target)) {
-    return { ...game, mines, status: "lost", exploded: cell };
-  }
+  const mines = game.mines ?? placeMines(game.difficulty, target, game.random);
+  return uncover(game, mines, [cell]);
+}
+
+/**
+ * Reveals `cells`, which must not be Flagged, with Cascades. Revealing a Mine is a Loss, but the
+ * Cells without a Mine are Revealed all the same.
+ */
+function uncover(game: Game, mines: ReadonlySet<number>, cells: Coord[]): Game {
+  const { difficulty } = game;
+  const exploded = new Set(
+    cells.map((cell) => indexOf(difficulty, cell)).filter((index) => mines.has(index)),
+  );
   const revealed = new Set(game.revealed);
   const markers = new Map(game.markers);
-  const pending = [cell];
+  const pending = cells.filter((cell) => !mines.has(indexOf(difficulty, cell)));
   for (let next = pending.pop(); next; next = pending.pop()) {
     const index = indexOf(difficulty, next);
     if (revealed.has(index) || markers.get(index) === "flag") continue;
@@ -125,6 +151,7 @@ function reveal(game: Game, cell: Coord): Game {
     markers.delete(index);
     if (clueAt(difficulty, mines, next) === 0) pending.push(...neighborsOf(difficulty, next));
   }
+  if (exploded.size > 0) return { ...game, mines, status: "lost", exploded, revealed, markers };
   const won = revealed.size === difficulty.width * difficulty.height - mines.size;
   // On a Win every Mine gets a Flag, replacing any Question, so the mine counter reads 0.
   if (won) for (const mine of mines) markers.set(mine, "flag");
@@ -160,8 +187,8 @@ export function elapsedSeconds(game: Game, now: number): number {
 }
 
 export function cellView(game: Game, cell: Coord): CellView {
-  if (game.exploded && sameCell(game.exploded, cell)) return { kind: "exploded" };
   const index = indexOf(game.difficulty, cell);
+  if (game.exploded?.has(index)) return { kind: "exploded" };
   if (game.revealed.has(index)) {
     return { kind: "revealed", clue: clueAt(game.difficulty, game.mines ?? new Set(), cell) };
   }
@@ -193,10 +220,6 @@ function clueAt(difficulty: Difficulty, mines: ReadonlySet<number>, cell: Coord)
   return neighborsOf(difficulty, cell).filter((neighbor) =>
     mines.has(indexOf(difficulty, neighbor)),
   ).length;
-}
-
-function sameCell(a: Coord, b: Coord): boolean {
-  return a.row === b.row && a.col === b.col;
 }
 
 function indexOf(difficulty: Difficulty, cell: Coord): number {
