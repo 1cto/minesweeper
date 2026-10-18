@@ -137,3 +137,191 @@ body {
   background-color: transparent;
   background-repeat: no-repeat;
 }
+
+/*
+ * Menus and dialogs. Their text uses the system font, which differs between machines, so every
+ * text box has a fixed size and the font can never move anything else.
+ */
+
+.menu-text,
+.dialog-text {
+  display: block;
+  height: 13px;
+  margin: 0;
+  line-height: 13px;
+  overflow: hidden;
+  font:
+    11px Tahoma,
+    Verdana,
+    "Segoe UI",
+    sans-serif;
+  white-space: nowrap;
+}
+
+/*
+ * Above the Board, so an open menu and the backdrop that catches presses elsewhere cover it.
+ * With its gap it adds an even 20px to the window, which keeps the centred window on whole pixels.
+ */
+.menu-bar {
+  position: relative;
+  z-index: 1;
+  height: 19px;
+  margin-top: 1px;
+  display: flex;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+.menu-bar-entry {
+  position: relative;
+}
+
+.menu-title {
+  width: 40px;
+  height: 19px;
+  padding: 3px 0 0;
+  border: 0;
+  background: var(--face);
+  color: var(--dark-shadow);
+  text-align: center;
+}
+
+.menu-title[aria-expanded="true"] {
+  box-shadow:
+    inset 1px 1px var(--shadow),
+    inset -1px -1px var(--highlight);
+}
+
+.menu-title[aria-expanded="true"] .menu-text {
+  transform: translate(1px, 1px);
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 140px;
+  padding: 3px;
+  background: var(--face);
+  box-shadow:
+    inset -1px -1px var(--dark-shadow),
+    inset 1px 1px var(--light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--highlight);
+}
+
+.menu-item {
+  width: 100%;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: var(--face);
+  color: var(--dark-shadow);
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: #000080;
+  color: var(--highlight);
+}
+
+.menu-check {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin: 0 7px 0 6px;
+  mask-repeat: no-repeat;
+}
+
+.menu-item[aria-checked="true"] .menu-check {
+  background: currentColor;
+}
+
+.menu-item .menu-text {
+  flex: 1;
+}
+
+.menu-separator {
+  height: 2px;
+  margin: 3px 1px 4px;
+  border-top: 1px solid var(--shadow);
+  border-bottom: 1px solid var(--highlight);
+}
+
+/* Dialogs */
+
+/* Modal: it covers the desktop, so the game ignores the mouse while a dialog is open. */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+
+.dialog .title-text {
+  margin-left: 2px;
+}
+
+/* 264×108, so the whole dialog is 270×132: even sizes keep the centred dialog on whole pixels. */
+.about {
+  width: 264px;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  column-gap: 14px;
+  padding: 14px 11px 12px;
+}
+
+.about-icon {
+  width: 32px;
+  height: 32px;
+  background-size: 32px 32px;
+}
+
+.about-text {
+  display: grid;
+  row-gap: 3px;
+  align-content: start;
+}
+
+.about-name {
+  font-weight: bold;
+}
+
+.about a {
+  color: #0000ff;
+}
+
+.dialog-button {
+  grid-column: 2;
+  justify-self: end;
+  width: 75px;
+  height: 23px;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: var(--face);
+  color: var(--dark-shadow);
+  box-shadow:
+    inset -1px -1px var(--dark-shadow),
+    inset 1px 1px var(--highlight),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--light);
+}
+
+.dialog-button:active {
+  box-shadow:
+    inset 1px 1px var(--dark-shadow),
+    inset -1px -1px var(--highlight),
+    inset 2px 2px var(--shadow),
+    inset -2px -2px var(--light);
+}
+
+.dialog-button:active .dialog-text {
+  transform: translate(1px, 1px);
+}

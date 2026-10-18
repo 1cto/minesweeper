@@ -13,6 +13,11 @@ export type Difficulty = {
 };
 
 export const BEGINNER: Difficulty = { name: "Beginner", width: 9, height: 9, mines: 10 };
+export const INTERMEDIATE: Difficulty = { name: "Intermediate", width: 16, height: 16, mines: 40 };
+export const EXPERT: Difficulty = { name: "Expert", width: 30, height: 16, mines: 99 };
+
+/** Every Difficulty, in the order the Game menu lists them. */
+export const DIFFICULTIES: readonly Difficulty[] = [BEGINNER, INTERMEDIATE, EXPERT];
 
 export type GameStatus = "ready" | "playing" | "won" | "lost";
 
