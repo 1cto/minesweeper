@@ -12,8 +12,10 @@ import {
 } from "../engine/game";
 import { Board } from "./Board";
 import { GameMenuBar } from "./GameMenuBar";
+import { NewBestTimeDialog } from "./NewBestTimeDialog";
 import { StatusPanel, type Face } from "./StatusPanel";
 import { loadMarks, saveDifficulty, saveMarks } from "./storage";
+import { useBestTimes } from "./useBestTimes";
 import { useClock } from "./useClock";
 import { Window } from "./Window";
 
@@ -38,6 +40,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   // The Win and Loss faces outrank the surprised face shown while a button is held.
   const face: Face = holding && FACE[status] === "normal" ? "surprised" : FACE[status];
   const now = useClock(status === "playing");
+  const { bestTimes, lastName, newBestTime, recordName, resetScores } = useBestTimes(game, now);
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -69,6 +72,8 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         onChooseDifficulty={chooseDifficulty}
         marks={marks}
         onToggleMarks={toggleMarks}
+        bestTimes={bestTimes}
+        onResetScores={resetScores}
       />
       <div className="game" data-testid="game">
         <StatusPanel
@@ -84,6 +89,13 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
           onHoldChange={setHolding}
         />
       </div>
+      {newBestTime && (
+        <NewBestTimeDialog
+          difficulty={newBestTime.difficulty}
+          initialName={lastName}
+          onOk={recordName}
+        />
+      )}
     </Window>
   );
 }
