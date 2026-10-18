@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  acceptOfferedName,
   cell,
   EVERY_CLUE,
   EVERY_CLUE_CENTRES,
@@ -19,6 +20,7 @@ test("the game is a Windows 95/98 window centred on a teal desktop", async ({ pa
 test("the title bar shows the name and inert minimise and close buttons", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
   await cell(page, 8, 8).click();
+  await acceptOfferedName(page);
 
   await page.getByRole("button", { name: "Minimise" }).click();
   await page.getByRole("button", { name: "Close" }).click();

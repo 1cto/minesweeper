@@ -1,5 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
-import { cell, ONE_MINE_IN_THE_CORNER, openWithLayout } from "./helpers";
+import {
+  acceptOfferedName,
+  BROKEN_STORAGE,
+  cell,
+  ONE_MINE_IN_THE_CORNER,
+  openWithLayout,
+} from "./helpers";
 
 async function chooseFromMenu(page: Page, menu: "Game" | "Help", item: string) {
   await page.getByRole("menuitem", { name: menu, exact: true }).click();
@@ -221,23 +227,6 @@ test("the About dialog is a Windows 98 dialog over the game", async ({ page }) =
   await expect(page).toHaveScreenshot("about.png", { mask: systemFontText(page) });
 });
 
-const BROKEN_STORAGE = {
-  // Blocked site data: merely touching localStorage throws.
-  blocked: () => {
-    const fail = () => {
-      throw new DOMException("The operation is insecure.", "SecurityError");
-    };
-    Object.defineProperty(window, "localStorage", { get: fail });
-  },
-  // Every read and write throws, like a full or disabled store.
-  throwing: () => {
-    const fail = () => {
-      throw new DOMException("The quota has been exceeded.", "QuotaExceededError");
-    };
-    Object.assign(Storage.prototype, { getItem: fail, setItem: fail, removeItem: fail });
-  },
-};
-
 for (const [name, breakStorage] of Object.entries(BROKEN_STORAGE)) {
   test(`the game loads and plays when storage is ${name}`, async ({ page }) => {
     const errors: string[] = [];
@@ -253,6 +242,7 @@ for (const [name, breakStorage] of Object.entries(BROKEN_STORAGE)) {
     }
     await cell(page, 8, 8).click();
     await expect(cell(page, 1, 1)).toHaveAttribute("data-clue", "1");
+    await acceptOfferedName(page);
     await chooseFromMenu(page, "Game", "Expert");
 
     expect(states).toEqual(["flag", "hidden"]);

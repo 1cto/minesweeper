@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { cell, ONE_MINE_IN_THE_CORNER, openWithLayout } from "./helpers";
+import { acceptOfferedName, cell, ONE_MINE_IN_THE_CORNER, openWithLayout } from "./helpers";
 
 /** Moves the mouse to the middle of `target`, as a player aiming at it would. */
 async function pointAt(page: Page, target: Locator) {
@@ -122,6 +122,7 @@ test("once the Game is lost nothing looks pressed and the face stays dead", asyn
 test("once the Game is won nothing looks pressed and the face stays cool", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
   await cell(page, 8, 8).click();
+  await acceptOfferedName(page);
   await pointAt(page, cell(page, 0, 0));
 
   await page.mouse.down();
