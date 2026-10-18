@@ -9,7 +9,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["list"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: `http://localhost:${port}`,
+    // The site is published as a GitHub Pages project page, so it is served under /minesweeper/.
+    baseURL: `http://localhost:${port}/minesweeper/`,
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

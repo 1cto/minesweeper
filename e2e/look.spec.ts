@@ -8,7 +8,7 @@ import {
 } from "./helpers";
 
 test("the game is a Windows 95/98 window centred on a teal desktop", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("./");
 
   // The title text is drawn with a system font, which differs between machines.
   await expect(page).toHaveScreenshot("desktop.png", { mask: [page.getByTestId("title-text")] });
@@ -50,7 +50,7 @@ test("a Revealed Mine is drawn on its Cell", async ({ page }) => {
 });
 
 test("the smiley looks pressed while it is held", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("./");
   const smiley = page.getByRole("button", { name: "New game" });
   const box = await smiley.boundingBox();
   if (!box) throw new Error("smiley is not visible");

@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 
 /** Opens a Beginner Game with a fixed Layout: one row per string, "x" for a Mine. */
 export async function openWithLayout(page: Page, rows: string[]) {
-  await page.goto(`/?layout=${rows.join("/")}`);
+  await page.goto(`./?layout=${rows.join("/")}`);
 }
 
 export const cell = (page: Page, row: number, col: number) =>
