@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { cell, openWithLayout } from "./helpers";
+import { acceptOfferedName, cell, openWithLayout } from "./helpers";
 
 /** Five Mines; one Reveal at (6, 6) Cascades over every Cell without a Mine. */
 const CORNERS_AND_ONE_INSIDE = [
@@ -34,13 +34,17 @@ async function freezeClock(page: Page) {
   await page.clock.setFixedTime(time);
 }
 
-/** A Win with a Flag on (0, 0) and a Question on (3, 3) placed beforehand. */
+/**
+ * A Win with a Flag on (0, 0) and a Question on (3, 3) placed beforehand. It is the first Win, so
+ * a new Best Time, and the name prompt is answered to leave the finished Board in view.
+ */
 async function win(page: Page) {
   await openWithLayout(page, CORNERS_AND_ONE_INSIDE);
   await cell(page, 0, 0).click({ button: "right" });
   await cell(page, 3, 3).click({ button: "right" });
   await cell(page, 3, 3).click({ button: "right" });
   await cell(page, 6, 6).click();
+  await acceptOfferedName(page);
 }
 
 /**

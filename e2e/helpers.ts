@@ -8,6 +8,32 @@ export async function openWithLayout(page: Page, rows: string[]) {
 export const cell = (page: Page, row: number, col: number) =>
   page.getByTestId(`cell-${row}-${col}`);
 
+/** A Win faster than the Best Time asks for the player's name; this accepts the name offered. */
+export async function acceptOfferedName(page: Page) {
+  await page
+    .getByRole("dialog", { name: "New Best Time" })
+    .getByRole("button", { name: "OK" })
+    .click();
+}
+
+/** Init scripts that make browser storage fail, for `page.addInitScript`. */
+export const BROKEN_STORAGE = {
+  // Blocked site data: merely touching localStorage throws.
+  blocked: () => {
+    const fail = () => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    };
+    Object.defineProperty(window, "localStorage", { get: fail });
+  },
+  // Every read and write throws, like a full or disabled store.
+  throwing: () => {
+    const fail = () => {
+      throw new DOMException("The quota has been exceeded.", "QuotaExceededError");
+    };
+    Object.assign(Storage.prototype, { getItem: fail, setItem: fail, removeItem: fail });
+  },
+};
+
 export const ONE_MINE_IN_THE_CORNER = [
   "x........",
   ".........",

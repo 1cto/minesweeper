@@ -298,12 +298,15 @@ body {
   color: #0000ff;
 }
 
-.dialog-button {
+.about .dialog-button {
   grid-column: 2;
   justify-self: end;
+  margin-top: 14px;
+}
+
+.dialog-button {
   width: 75px;
   height: 23px;
-  margin-top: 14px;
   padding: 0;
   border: 0;
   background: var(--face);
@@ -325,4 +328,97 @@ body {
 
 .dialog-button:active .dialog-text {
   transform: translate(1px, 1px);
+}
+
+/* 214×134, so the whole dialog is 220×158. */
+.new-best-time {
+  width: 214px;
+  display: grid;
+  row-gap: 3px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* A sunken text box; the input inside holds the system-font text, so screenshots can mask it. */
+.name-field {
+  justify-self: center;
+  width: 150px;
+  height: 20px;
+  margin-top: 7px;
+  padding: 2px;
+  background: var(--highlight);
+  box-shadow:
+    inset 1px 1px var(--shadow),
+    inset -1px -1px var(--highlight),
+    inset 2px 2px var(--dark-shadow),
+    inset -2px -2px var(--light);
+}
+
+.name-field .dialog-text {
+  width: 100%;
+  height: 16px;
+  padding: 0 1px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  line-height: 16px;
+  text-align: left;
+}
+
+.name-field .dialog-text::selection {
+  background: #000080;
+  color: var(--highlight);
+}
+
+/* As close to the centre as whole pixels allow. */
+.new-best-time .dialog-button {
+  justify-self: start;
+  margin: 9px 0 0 57px;
+}
+
+/* 374×112, so the whole dialog is 380×136; the name column fits most 32-character names. */
+.best-times {
+  width: 374px;
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 14px 16px 12px;
+}
+
+.best-times table {
+  grid-column: 1 / -1;
+  border-spacing: 0;
+}
+
+.best-times th,
+.best-times td {
+  padding: 0;
+  text-align: left;
+}
+
+.best-times tr + tr > * {
+  padding-top: 4px;
+}
+
+.best-time-difficulty {
+  width: 84px;
+}
+
+.best-time-seconds {
+  width: 80px;
+}
+
+.best-time-name {
+  width: 178px;
+}
+
+.best-times .dialog-button {
+  margin-top: 16px;
+}
+
+.best-times .reset-scores {
+  width: 90px;
+}
+
+.best-times .reset-scores + .dialog-button {
+  justify-self: end;
 }
