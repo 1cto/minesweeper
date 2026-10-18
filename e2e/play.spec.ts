@@ -1,23 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-/** Opens a Beginner Game with a fixed Layout: one row per string, "x" for a Mine. */
-async function openWithLayout(page: Page, rows: string[]) {
-  await page.goto(`/?layout=${rows.join("/")}`);
-}
-
-const ONE_MINE_IN_THE_CORNER = [
-  "x........",
-  ".........",
-  ".........",
-  ".........",
-  ".........",
-  ".........",
-  ".........",
-  ".........",
-  ".........",
-];
-
-const cell = (page: Page, row: number, col: number) => page.getByTestId(`cell-${row}-${col}`);
+import { expect, test } from "@playwright/test";
+import { cell, ONE_MINE_IN_THE_CORNER, openWithLayout } from "./helpers";
 
 test("a Reveal far from the only Mine Cascades into a Win", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
@@ -25,7 +7,7 @@ test("a Reveal far from the only Mine Cascades into a Win", async ({ page }) => 
   await cell(page, 8, 8).click();
 
   await expect(page.getByRole("status")).toHaveText("You won!");
-  await expect(cell(page, 1, 1)).toHaveText("1");
+  await expect(cell(page, 1, 1)).toHaveAttribute("data-clue", "1");
   await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "hidden");
 });
 

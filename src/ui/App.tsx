@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   applyAction,
   BEGINNER,
+  mineCount,
   newGame,
   statusOf,
   type Coord,
@@ -9,6 +10,8 @@ import {
   type Layout,
 } from "../engine/game";
 import { Board } from "./Board";
+import { StatusPanel } from "./StatusPanel";
+import { Window } from "./Window";
 
 const RESULT_TEXT: Record<GameStatus, string> = {
   ready: "",
@@ -27,12 +30,14 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   const startNewGame = () => setGame(newGame(BEGINNER, { random: Math.random }));
 
   return (
-    <main>
-      <button type="button" aria-label="New game" onClick={startNewGame}>
-        🙂
-      </button>
-      <p role="status">{RESULT_TEXT[statusOf(game)]}</p>
-      <Board game={game} onReveal={reveal} />
-    </main>
+    <Window>
+      <div className="game" data-testid="game">
+        <StatusPanel mines={mineCount(game)} onNewGame={startNewGame} />
+        <Board game={game} onReveal={reveal} />
+      </div>
+      <p role="status" className="visually-hidden">
+        {RESULT_TEXT[statusOf(game)]}
+      </p>
+    </Window>
   );
 }

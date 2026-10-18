@@ -4,6 +4,7 @@ import {
   BEGINNER,
   cellView,
   layoutOf,
+  mineCount,
   newGame,
   statusOf,
   type Coord,
@@ -72,6 +73,21 @@ describe("a new Game", () => {
 
     expect(statusOf(game)).toBe("ready");
     expect(cellsOf(BEGINNER).every((cell) => cellView(game, cell).kind === "hidden")).toBe(true);
+  });
+});
+
+describe("the Mine count", () => {
+  it("is the Difficulty's Mine count before the Layout is fixed", () => {
+    expect(mineCount(newGame(BEGINNER, { random: unusedRandom }))).toBe(10);
+  });
+
+  it("is the number of Mines in an explicit Layout", () => {
+    const game = newGame(SQUARE_3, {
+      random: unusedRandom,
+      layout: layoutFrom(["x..", "...", "..."]),
+    });
+
+    expect(mineCount(game)).toBe(1);
   });
 });
 

@@ -1,0 +1,148 @@
+/* Windows 95/98 look. Sizes are the original's at ×1; every graphic comes from sprites.ts. */
+
+:root {
+  --face: #c0c0c0;
+  --highlight: #ffffff;
+  --shadow: #808080;
+  --dark-shadow: #000000;
+  --light: #dfdfdf;
+  --desktop: #008080;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--desktop);
+}
+
+.desktop {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.window {
+  padding: 3px;
+  background: var(--face);
+  box-shadow:
+    inset -1px -1px var(--dark-shadow),
+    inset 1px 1px var(--light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--highlight);
+  user-select: none;
+}
+
+.title-bar {
+  height: 18px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 2px 0 1px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+}
+
+.title-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* A fixed box: the system font differs between machines, so it must not change the layout. */
+.title-text {
+  flex: 1;
+  height: 14px;
+  line-height: 14px;
+  overflow: hidden;
+  color: var(--highlight);
+  font:
+    bold 11px Tahoma,
+    Verdana,
+    "Segoe UI",
+    sans-serif;
+  white-space: nowrap;
+}
+
+.title-button {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+}
+
+.title-button + .title-button {
+  margin-left: 2px;
+}
+
+.game {
+  margin-top: 1px;
+  padding: 6px;
+  border: 3px solid;
+  border-color: var(--highlight) var(--shadow) var(--shadow) var(--highlight);
+}
+
+.status-panel {
+  height: 37px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 0 5px;
+  border: 2px solid;
+  border-color: var(--shadow) var(--highlight) var(--highlight) var(--shadow);
+}
+
+/* Explicit offsets instead of centring keep the 25px counters and 26px smiley on whole pixels. */
+.led {
+  margin-top: 4px;
+  display: flex;
+  border: 1px solid;
+  border-color: var(--shadow) var(--highlight) var(--highlight) var(--shadow);
+}
+
+.led-digit {
+  width: 13px;
+  height: 23px;
+}
+
+.smiley {
+  margin-top: 3px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background-image: var(--sprite);
+}
+
+.smiley:active {
+  background-image: var(--sprite-pressed);
+}
+
+.board {
+  display: grid;
+  width: fit-content;
+  border: 3px solid;
+  border-color: var(--shadow) var(--highlight) var(--highlight) var(--shadow);
+}
+
+.cell {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+}
+
+.sprite {
+  background-color: transparent;
+  background-repeat: no-repeat;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

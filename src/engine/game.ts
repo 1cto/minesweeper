@@ -66,6 +66,11 @@ export function layoutOf(game: Game): Layout | undefined {
   return [...game.mines].map((index) => ({ row: Math.floor(index / width), col: index % width }));
 }
 
+/** The number of Mines in the Game: the Difficulty's, or an explicit Layout's. */
+export function mineCount(game: Game): number {
+  return game.mines?.size ?? game.difficulty.mines;
+}
+
 export function statusOf(game: Game): GameStatus {
   return game.status;
 }

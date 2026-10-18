@@ -1,11 +1,15 @@
 import { cellView, type CellView, type Coord, type Game } from "../engine/game";
+import { CELL_SPRITES } from "./sprites";
 
-const CELL_SIZE = 24;
-
-function cellText(view: CellView): string {
-  if (view.kind === "exploded") return "*";
-  if (view.kind === "revealed" && view.clue > 0) return String(view.clue);
-  return "";
+function spriteFor(view: CellView): string | undefined {
+  switch (view.kind) {
+    case "hidden":
+      return CELL_SPRITES.hidden;
+    case "revealed":
+      return CELL_SPRITES.clues[view.clue];
+    case "exploded":
+      return CELL_SPRITES.mine;
+  }
 }
 
 export function Board({ game, onReveal }: { game: Game; onReveal: (cell: Coord) => void }) {
@@ -16,26 +20,21 @@ export function Board({ game, onReveal }: { game: Game; onReveal: (cell: Coord) 
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${width}, ${CELL_SIZE}px)`,
-        gridAutoRows: `${CELL_SIZE}px`,
-      }}
-    >
+    <div className="board" style={{ gridTemplateColumns: `repeat(${width}, 16px)` }}>
       {cells.map((cell) => {
         const view = cellView(game, cell);
         return (
           <button
             key={`${cell.row}-${cell.col}`}
             type="button"
+            className="cell sprite"
+            style={{ backgroundImage: spriteFor(view) }}
             data-testid={`cell-${cell.row}-${cell.col}`}
             data-state={view.kind}
+            data-clue={view.kind === "revealed" ? view.clue : undefined}
             aria-label={`Row ${cell.row + 1}, column ${cell.col + 1}`}
             onClick={() => onReveal(cell)}
-          >
-            {cellText(view)}
-          </button>
+          />
         );
       })}
     </div>
