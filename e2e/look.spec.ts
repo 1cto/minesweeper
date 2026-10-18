@@ -34,6 +34,8 @@ test("the status panel shows the Mine count and the timer at 000", async ({ page
 });
 
 test("Clues 1 to 8 use their classic colours and a 0-Clue Cell is blank", async ({ page }) => {
+  // The Game is still playing when the screenshot is taken, so the timer must not move.
+  await page.clock.setFixedTime(new Date("2026-01-01T09:00:00"));
   await openWithLayout(page, EVERY_CLUE);
 
   for (const [row, col] of EVERY_CLUE_CENTRES) await cell(page, row, col).click();
