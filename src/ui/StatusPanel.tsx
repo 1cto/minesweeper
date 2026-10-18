@@ -22,9 +22,21 @@ function LedCounter({ label, value, testId }: { label: string; value: number; te
   );
 }
 
-export function StatusPanel({ mines, onNewGame }: { mines: number; onNewGame: () => void }) {
+/** The smiley's expression. */
+export type Face = "normal" | "surprised" | "cool" | "dead";
+
+export function StatusPanel({
+  mines,
+  face,
+  onNewGame,
+}: {
+  mines: number;
+  face: Face;
+  onNewGame: () => void;
+}) {
   const smileyStyle = {
-    "--sprite": SMILEY_SPRITES.normal,
+    // The surprised face has no sprite yet, so it shows the normal one.
+    "--sprite": face === "surprised" ? SMILEY_SPRITES.normal : SMILEY_SPRITES[face],
     "--sprite-pressed": SMILEY_SPRITES.pressed,
   } as CSSProperties;
 
@@ -36,6 +48,7 @@ export function StatusPanel({ mines, onNewGame }: { mines: number; onNewGame: ()
         aria-label="New game"
         className="smiley sprite"
         style={smileyStyle}
+        data-face={face}
         onClick={onNewGame}
       />
       <LedCounter label="Timer" value={0} testId="timer" />

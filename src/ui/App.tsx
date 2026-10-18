@@ -10,17 +10,17 @@ import {
   type Layout,
 } from "../engine/game";
 import { Board } from "./Board";
-import { StatusPanel } from "./StatusPanel";
+import { StatusPanel, type Face } from "./StatusPanel";
 import { Window } from "./Window";
 
 /** Until the Marks (?) menu item exists, the right button can always place Questions. */
 const QUESTIONS_ENABLED = true;
 
-const RESULT_TEXT: Record<GameStatus, string> = {
-  ready: "",
-  playing: "",
-  won: "You won!",
-  lost: "You lost.",
+const FACE: Record<GameStatus, Face> = {
+  ready: "normal",
+  playing: "normal",
+  won: "cool",
+  lost: "dead",
 };
 
 export function App({ initialLayout }: { initialLayout?: Layout }) {
@@ -44,12 +44,13 @@ export function App({ initialLayout }: { initialLayout?: Layout }) {
   return (
     <Window>
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCounter(game)} onNewGame={startNewGame} />
+        <StatusPanel
+          mines={mineCounter(game)}
+          face={FACE[statusOf(game)]}
+          onNewGame={startNewGame}
+        />
         <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
       </div>
-      <p role="status" className="visually-hidden">
-        {RESULT_TEXT[statusOf(game)]}
-      </p>
     </Window>
   );
 }

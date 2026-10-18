@@ -248,6 +248,27 @@ const QUESTION: Bitmap = [
   "...kk...",
 ];
 
+/** The red cross drawn over a Mine to show a wrong Flag after a Loss. */
+const CROSS: Bitmap = [
+  "rr........rr",
+  ".rr......rr.",
+  "..rr....rr..",
+  "...rr..rr...",
+  "....rrrr....",
+  ".....rr.....",
+  ".....rr.....",
+  "....rrrr....",
+  "...rr..rr...",
+  "..rr....rr..",
+  ".rr......rr.",
+  "rr........rr",
+];
+
+/** The Revealed Mine that lost the Game sits on a red background. */
+const EXPLODED_CELL: Bitmap = REVEALED_CELL.map((line, y) =>
+  y === 0 ? line : line.charAt(0) + "r".repeat(line.length - 1),
+);
+
 export const CELL_SPRITES = {
   hidden: sprite(HIDDEN_CELL),
   flag: sprite(overlay(HIDDEN_CELL, FLAG, 2, 3)),
@@ -260,6 +281,8 @@ export const CELL_SPRITES = {
     );
   }),
   mine: sprite(overlay(REVEALED_CELL, MINE, 2, 2)),
+  exploded: sprite(overlay(EXPLODED_CELL, MINE, 2, 2)),
+  wrongFlag: sprite(overlay(overlay(REVEALED_CELL, MINE, 2, 2), CROSS, 2, 2)),
 };
 
 // Seven-segment counter digits (13×23)
@@ -361,6 +384,48 @@ const NORMAL_FACE: Bitmap = [
   "......kkkkk......",
 ];
 
+/** After a Win: sunglasses over the eyes. */
+const COOL_FACE: Bitmap = [
+  "......kkkkk......",
+  "....kkyyyyykk....",
+  "...kyyyyyyyyyk...",
+  "..kyyyyyyyyyyyk..",
+  ".kyyyyyyyyyyyyyk.",
+  ".kkkkkkkkkkkkkkk.",
+  "kyykkkkkykkkkkyyk",
+  "kyyykkkyyykkkyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyykyyyyyyykyyyk",
+  ".kyyykyyyyykyyyk.",
+  ".kyyyykkkkkyyyyk.",
+  "..kyyyyyyyyyyyk..",
+  "...kyyyyyyyyyk...",
+  "....kkyyyyykk....",
+  "......kkkkk......",
+];
+
+/** After a Loss: crossed-out eyes and a frown. */
+const DEAD_FACE: Bitmap = [
+  "......kkkkk......",
+  "....kkyyyyykk....",
+  "...kyyyyyyyyyk...",
+  "..kyyyyyyyyyyyk..",
+  ".kyykykyyykykyyk.",
+  ".kyyykyyyyykyyyk.",
+  "kyyykykyyykykyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyyyyyyyyyyyyk",
+  "kyyyyykkkkkyyyyyk",
+  ".kyyykyyyyykyyyk.",
+  ".kyykyyyyyyykyyk.",
+  "..kyyyyyyyyyyyk..",
+  "...kyyyyyyyyyk...",
+  "....kkyyyyykk....",
+  "......kkkkk......",
+];
+
 const SMILEY_BUTTON = bevel(
   26,
   26,
@@ -385,6 +450,8 @@ const SMILEY_BUTTON_PRESSED = bevel(
 export const SMILEY_SPRITES = {
   normal: sprite(overlay(SMILEY_BUTTON, NORMAL_FACE, 4, 4)),
   pressed: sprite(overlay(SMILEY_BUTTON_PRESSED, NORMAL_FACE, 5, 5)),
+  cool: sprite(overlay(SMILEY_BUTTON, COOL_FACE, 4, 4)),
+  dead: sprite(overlay(SMILEY_BUTTON, DEAD_FACE, 4, 4)),
 };
 
 // Title bar (16×14 buttons, 16×16 icon)
