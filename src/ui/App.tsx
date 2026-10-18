@@ -32,7 +32,12 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   const [game, setGame] = useState(() =>
     newGame(difficulty, { random: Math.random, layout: initialLayout }),
   );
-  const now = useClock(statusOf(game) === "playing");
+  /** Whether a mouse button pressed on the Board is still held. */
+  const [holding, setHolding] = useState(false);
+  const status = statusOf(game);
+  // The Win and Loss faces outrank the surprised face shown while a button is held.
+  const face: Face = holding && FACE[status] === "normal" ? "surprised" : FACE[status];
+  const now = useClock(status === "playing");
 
   const reveal = (cell: Coord) =>
     setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
@@ -69,10 +74,15 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         <StatusPanel
           mines={mineCounter(game)}
           seconds={elapsedSeconds(game, now)}
-          face={FACE[statusOf(game)]}
+          face={face}
           onNewGame={startNewGame}
         />
-        <Board game={game} onReveal={reveal} onCycleMarker={cycleMarker} />
+        <Board
+          game={game}
+          onReveal={reveal}
+          onCycleMarker={cycleMarker}
+          onHoldChange={setHolding}
+        />
       </div>
     </Window>
   );

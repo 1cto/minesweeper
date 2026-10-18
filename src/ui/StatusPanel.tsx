@@ -34,8 +34,7 @@ type StatusPanelProps = {
 
 export function StatusPanel({ mines, seconds, face, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
-    // The surprised face has no sprite yet, so it shows the normal one.
-    "--sprite": face === "surprised" ? SMILEY_SPRITES.normal : SMILEY_SPRITES[face],
+    "--sprite": SMILEY_SPRITES[face],
     "--sprite-pressed": SMILEY_SPRITES.pressed,
   } as CSSProperties;
 
