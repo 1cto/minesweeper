@@ -12,7 +12,11 @@ function spriteFor(view: CellView): string | undefined {
     case "revealed":
       return CELL_SPRITES.clues[view.clue];
     case "exploded":
+      return CELL_SPRITES.exploded;
+    case "mine":
       return CELL_SPRITES.mine;
+    case "wrongFlag":
+      return CELL_SPRITES.wrongFlag;
   }
 }
 

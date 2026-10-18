@@ -6,9 +6,9 @@ test("a Reveal far from the only Mine Cascades into a Win", async ({ page }) => 
 
   await cell(page, 8, 8).click();
 
-  await expect(page.getByRole("status")).toHaveText("You won!");
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
   await expect(cell(page, 1, 1)).toHaveAttribute("data-clue", "1");
-  await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "hidden");
+  await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "flag");
 });
 
 test("Revealing a Mine is a Loss", async ({ page }) => {
@@ -16,7 +16,7 @@ test("Revealing a Mine is a Loss", async ({ page }) => {
 
   await cell(page, 0, 0).click();
 
-  await expect(page.getByRole("status")).toHaveText("You lost.");
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "dead");
   await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "exploded");
 });
 
@@ -26,7 +26,10 @@ test("a new Game starts with every Cell Hidden", async ({ page }) => {
 
   await page.getByRole("button", { name: "New game" }).click();
 
-  await expect(page.getByRole("status")).toHaveText("");
+  await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute(
+    "data-face",
+    "normal",
+  );
   await expect(page.locator('[data-state="hidden"]')).toHaveCount(81);
 });
 
