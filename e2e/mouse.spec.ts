@@ -10,16 +10,22 @@ async function pointAt(page: Page, target: Locator) {
 
 const pressedCells = (page: Page) => page.locator('[data-pressed="true"]');
 
-test("a left press shows a Hidden Cell pressed and the release Reveals it", async ({ page }) => {
+test("a left press shows the Hidden Cell under the pointer pressed and the release Reveals it", async ({
+  page,
+}) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
-  await pointAt(page, cell(page, 1, 1));
+  await pointAt(page, cell(page, 1, 0));
 
   await page.mouse.down();
+  await expect(cell(page, 1, 0)).toHaveAttribute("data-pressed", "true");
+  await pointAt(page, cell(page, 1, 1));
   await expect(cell(page, 1, 1)).toHaveAttribute("data-pressed", "true");
+  await expect(pressedCells(page)).toHaveCount(1);
   await expect(cell(page, 1, 1)).toHaveAttribute("data-state", "hidden");
 
   await page.mouse.up();
   await expect(cell(page, 1, 1)).toHaveAttribute("data-state", "revealed");
+  await expect(cell(page, 1, 0)).toHaveAttribute("data-state", "hidden");
   await expect(pressedCells(page)).toHaveCount(0);
 });
 
