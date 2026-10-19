@@ -1,18 +1,18 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import {
-  applyAction,
   elapsedSeconds,
   mineCounter,
   newGame,
   statusOf,
-  type Coord,
   type Difficulty,
   type GameStatus,
   type Layout,
 } from "../engine/game";
 import { Board } from "./Board";
+import { applyBoardEvent } from "./boardState";
 import { GameMenuBar } from "./GameMenuBar";
 import { NewBestTimeDialog } from "./NewBestTimeDialog";
+import { isUnderWay, type MouseInput } from "./press";
 import { StatusPanel, type Face } from "./StatusPanel";
 import { loadMarks, saveDifficulty, saveMarks } from "./storage";
 import { useBestTimes } from "./useBestTimes";
@@ -31,35 +31,24 @@ type AppProps = { initialDifficulty: Difficulty; initialLayout?: Layout };
 export function App({ initialDifficulty, initialLayout }: AppProps) {
   const [difficulty, setDifficulty] = useState(initialDifficulty);
   const [marks, setMarks] = useState(loadMarks);
-  const [game, setGame] = useState(() =>
-    newGame(difficulty, { random: Math.random, layout: initialLayout }),
-  );
-  /** Whether a mouse button pressed on the Board is still held. */
-  const [holding, setHolding] = useState(false);
+  const [{ game, press }, dispatch] = useReducer(applyBoardEvent, undefined, () => ({
+    game: newGame(initialDifficulty, { random: Math.random, layout: initialLayout }),
+    press: undefined,
+  }));
   const status = statusOf(game);
   // The Win and Loss faces outrank the surprised face shown while a button is held.
-  const face: Face = holding && FACE[status] === "normal" ? "surprised" : FACE[status];
+  const face: Face = isUnderWay(press) && FACE[status] === "normal" ? "surprised" : FACE[status];
   const now = useClock(status === "playing");
   const { bestTimes, lastName, newBestTime, recordName, resetScores } = useBestTimes(game, now);
 
-  const reveal = (cell: Coord) =>
-    setGame((current) => applyAction(current, { type: "reveal", cell, now: Date.now() }));
-  const cycleMarker = (cell: Coord) =>
-    setGame((current) =>
-      applyAction(current, {
-        type: "cycleMarker",
-        cell,
-        questionsEnabled: marks,
-        now: Date.now(),
-      }),
-    );
-  const chord = (cell: Coord) =>
-    setGame((current) => applyAction(current, { type: "chord", cell, now: Date.now() }));
-  const startNewGame = () => setGame(newGame(difficulty, { random: Math.random }));
+  const onMouse = (input: MouseInput) =>
+    dispatch({ type: "mouse", input, now: Date.now(), questionsEnabled: marks });
+  const startNewGame = () =>
+    dispatch({ type: "newGame", game: newGame(difficulty, { random: Math.random }) });
   const chooseDifficulty = (choice: Difficulty) => {
     setDifficulty(choice);
     saveDifficulty(choice);
-    setGame(newGame(choice, { random: Math.random }));
+    dispatch({ type: "newGame", game: newGame(choice, { random: Math.random }) });
   };
   const toggleMarks = () => {
     setMarks(!marks);
@@ -84,13 +73,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
           face={face}
           onNewGame={startNewGame}
         />
-        <Board
-          game={game}
-          onReveal={reveal}
-          onCycleMarker={cycleMarker}
-          onChord={chord}
-          onHoldChange={setHolding}
-        />
+        <Board game={game} press={press} onMouse={onMouse} />
       </div>
       {newBestTime && (
         <NewBestTimeDialog
