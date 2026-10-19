@@ -49,8 +49,12 @@ The player's "?" marker on a Hidden Cell, meaning the player is unsure whether i
 _Avoid_: Mark, Maybe
 
 **Chord**:
-The player's action on a Revealed Cell whose Clue equals the number of its Flagged Neighbors: it Reveals all of that Cell's other Hidden Neighbors at once.
+The player's action on a Cell that, when the Cell is Revealed and its Clue equals the number of its Flagged Neighbors, Reveals all of that Cell's other Hidden Neighbors at once; on any other Cell it does nothing.
 _Avoid_: Double-click, Area open
+
+**Press**:
+The player holding mouse buttons down on the Board, from the first button going down over a Cell until one of them is released; while it lasts, the Cells it would act on look pressed in.
+_Avoid_: Gesture, Hold, Click
 
 **Cascade**:
 The automatic Reveal of every Neighbor of a Cell whose Clue is 0, continuing through each newly Revealed Cell whose Clue is also 0.
