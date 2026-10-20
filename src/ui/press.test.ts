@@ -134,15 +134,20 @@ describe("once the Game is over", () => {
 });
 
 describe("a Chord", () => {
-  /** (1, 1) Revealed with a Clue of 1 and its Mine Flagged; every other Cell Hidden. */
-  const playing = revealOrMark(READY, [reveal({ row: 1, col: 1 }), cycleMarker(TOP_MINE)]);
+  /** (1, 1) Revealed with a Clue of 1, its Mine Flagged and a Question on (0, 1); the rest Hidden. */
+  const playing = revealOrMark(READY, [
+    reveal({ row: 1, col: 1 }),
+    cycleMarker(TOP_MINE),
+    cycleMarker({ row: 0, col: 1 }),
+    cycleMarker({ row: 0, col: 1 }),
+  ]);
   const chordDown = {
     "the middle button": (cell: Coord) => [down("middle", cell)],
     "the left and right buttons": (cell: Coord) => [down("left", cell), down("right", cell)],
   };
 
   it.each(Object.entries(chordDown))(
-    "held with %s pushes in the unflagged Hidden Neighbors and follows the pointer",
+    "held with %s pushes in the Hidden Neighbors and those with a Question, never a Flag, and follows the pointer",
     (_, start) => {
       const held = feed(playing, start({ row: 1, col: 1 }));
       expect(pressedIn(playing, held.press)).toEqual([".oo..", "o.o..", "ooo.."]);
