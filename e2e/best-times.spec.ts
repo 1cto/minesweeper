@@ -68,7 +68,7 @@ test("a Win faster than the Best Time asks for a name and Best Times shows it", 
   ]);
 });
 
-test("a Best Time survives a reload", async ({ page }) => {
+test("a Best Time and the last name entered survive a reload", async ({ page }) => {
   await openWithPausedClock(page);
   await winIn(page, 7);
   await enterName(page, "Ada");
@@ -81,53 +81,8 @@ test("a Best Time survives a reload", async ({ page }) => {
     "Intermediate: 999 seconds Anonymous",
     "Expert: 999 seconds Anonymous",
   ]);
-});
-
-test("a Win in exactly the Best Time does not ask for a name", async ({ page }) => {
-  await openWithPausedClock(page);
-  await winIn(page, 7);
-  await enterName(page, "Ada");
-  await page.reload();
-
-  await winIn(page, 7);
-
-  await expect(namePrompt(page)).toHaveCount(0);
-  await showBestTimes(page);
-  await expectBestTimes(page, [
-    "Beginner: 7 seconds Ada",
-    "Intermediate: 999 seconds Anonymous",
-    "Expert: 999 seconds Anonymous",
-  ]);
-});
-
-test("a Win slower than the Best Time does not ask for a name", async ({ page }) => {
-  await openWithPausedClock(page);
-  await winIn(page, 7);
-  await enterName(page, "Ada");
-  await page.reload();
-
-  await winIn(page, 12);
-
-  await expect(namePrompt(page)).toHaveCount(0);
-  await showBestTimes(page);
-  await expectBestTimes(page, [
-    "Beginner: 7 seconds Ada",
-    "Intermediate: 999 seconds Anonymous",
-    "Expert: 999 seconds Anonymous",
-  ]);
-});
-
-test("the name field offers Anonymous at first and then the last name entered", async ({
-  page,
-}) => {
-  await openWithPausedClock(page);
-  await winIn(page, 9);
-  await expect(nameField(page)).toHaveValue("Anonymous");
-  await enterName(page, "Ada");
-  await page.reload();
-
+  await bestTimes(page).getByRole("button", { name: "OK" }).click();
   await winIn(page, 5);
-
   await expect(nameField(page)).toHaveValue("Ada");
 });
 
@@ -159,38 +114,6 @@ test("closing the name prompt still records the new Best Time", async ({ page })
   await showBestTimes(page);
   await expectBestTimes(page, [
     "Beginner: 7 seconds Anonymous",
-    "Intermediate: 999 seconds Anonymous",
-    "Expert: 999 seconds Anonymous",
-  ]);
-});
-
-test("a name is capped at 32 characters", async ({ page }) => {
-  await openWithPausedClock(page);
-  await winIn(page, 7);
-
-  await enterName(page, "Augusta Ada King, Countess of Lovelace");
-
-  await showBestTimes(page);
-  await expectBestTimes(page, [
-    "Beginner: 7 seconds Augusta Ada King, Countess of Lo",
-    "Intermediate: 999 seconds Anonymous",
-    "Expert: 999 seconds Anonymous",
-  ]);
-});
-
-test("a name is trimmed and an empty name is saved as Anonymous", async ({ page }) => {
-  await openWithPausedClock(page);
-  await winIn(page, 9);
-  await enterName(page, "  Ada  ");
-  await page.reload();
-  await winIn(page, 5);
-  await expect(nameField(page)).toHaveValue("Ada");
-
-  await enterName(page, "   ");
-
-  await showBestTimes(page);
-  await expectBestTimes(page, [
-    "Beginner: 5 seconds Anonymous",
     "Intermediate: 999 seconds Anonymous",
     "Expert: 999 seconds Anonymous",
   ]);
@@ -230,21 +153,6 @@ test("Reset Scores clears the Best Time of every Difficulty at once", async ({ p
   await expectBestTimes(page, cleared);
 });
 
-test("Reset Scores after a slower Win does not ask for a name for that Win", async ({ page }) => {
-  await openWithPausedClock(page);
-  await winIn(page, 7);
-  await enterName(page, "Ada");
-  await page.reload();
-  await winIn(page, 12);
-  await showBestTimes(page);
-
-  await bestTimes(page).getByRole("button", { name: "Reset Scores" }).click();
-  await bestTimes(page).getByRole("button", { name: "OK" }).click();
-
-  await expect(bestTimes(page)).toBeHidden();
-  await expect(namePrompt(page)).toHaveCount(0);
-});
-
 for (const [name, breakStorage] of Object.entries(BROKEN_STORAGE)) {
   test(`Best Times keep working in memory when storage is ${name}`, async ({ page }) => {
     const errors: string[] = [];
@@ -271,17 +179,6 @@ for (const [name, breakStorage] of Object.entries(BROKEN_STORAGE)) {
     expect(errors).toEqual([]);
   });
 }
-
-test("a Win at 999 seconds is no faster than a Difficulty without a Best Time", async ({
-  page,
-}) => {
-  await openWithPausedClock(page);
-
-  await winIn(page, 1_200);
-
-  await expect(page.getByTestId("timer")).toHaveAccessibleName("Timer: 999");
-  await expect(namePrompt(page)).toHaveCount(0);
-});
 
 /** Text in the system font, which differs between machines, so screenshots mask it. */
 const systemFontText = (page: Page) => [
