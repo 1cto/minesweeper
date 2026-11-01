@@ -7,7 +7,8 @@
 import { BEGINNER, DIFFICULTIES, type Difficulty } from "../engine/game";
 
 // Every project page of the GitHub Pages site shares one origin, hence the prefix.
-const KEYS = { difficulty: "minesweeper.difficulty", marks: "minesweeper.marks" };
+// The Marks (?) preference keeps the key it was first stored under.
+const KEYS = { difficulty: "minesweeper.difficulty", questionsEnabled: "minesweeper.marks" };
 
 /** Strings kept by key, never throwing: a failed read gives `null` and a failed write is dropped. */
 export type KeyValueStore = {
@@ -55,10 +56,10 @@ export function saveDifficulty(difficulty: Difficulty): void {
 }
 
 /** The last Marks (?) setting, or on for the first visit. */
-export function loadMarks(): boolean {
-  return read(KEYS.marks) !== "off";
+export function loadQuestionsEnabled(): boolean {
+  return read(KEYS.questionsEnabled) !== "off";
 }
 
-export function saveMarks(marks: boolean): void {
-  write(KEYS.marks, marks ? "on" : "off");
+export function saveQuestionsEnabled(questionsEnabled: boolean): void {
+  write(KEYS.questionsEnabled, questionsEnabled ? "on" : "off");
 }

@@ -9,8 +9,9 @@ type GameMenuBarProps = {
   difficulty: Difficulty;
   onNewGame: () => void;
   onChooseDifficulty: (difficulty: Difficulty) => void;
-  marks: boolean;
-  onToggleMarks: () => void;
+  /** The Marks (?) preference. */
+  questionsEnabled: boolean;
+  onToggleQuestionsEnabled: () => void;
   bestTimes: BestTimes;
   onResetScores: () => void;
 };
@@ -20,8 +21,8 @@ export function GameMenuBar({
   difficulty,
   onNewGame,
   onChooseDifficulty,
-  marks,
-  onToggleMarks,
+  questionsEnabled,
+  onToggleQuestionsEnabled,
   bestTimes,
   onResetScores,
 }: GameMenuBarProps) {
@@ -40,7 +41,12 @@ export function GameMenuBar({
           onSelect: () => onChooseDifficulty(choice),
         })),
         { kind: "separator" },
-        { kind: "checkbox", label: "Marks (?)", checked: marks, onSelect: onToggleMarks },
+        {
+          kind: "checkbox",
+          label: "Marks (?)",
+          checked: questionsEnabled,
+          onSelect: onToggleQuestionsEnabled,
+        },
         { kind: "separator" },
         { kind: "command", label: "Best Times…", onSelect: () => setBestTimesOpen(true) },
       ],
