@@ -69,7 +69,7 @@ A Touch that ends before it becomes a Long Touch.
 _Avoid_: Click, Short touch
 
 **Long Touch**:
-A Touch held on a Hidden Cell long enough to put, change or remove its Flag or Question, as the right button does, without waiting for the finger to lift.
+A Touch held on a Hidden Cell long enough to put, change or remove its Flag or Question, as the right button does, without waiting for the Touch to end.
 _Avoid_: Long press, Long tap, Hold
 
 **Cascade**:
