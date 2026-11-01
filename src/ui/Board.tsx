@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent } from "react";
-import { cellView, type CellView, type Coord, type Game } from "../engine/game";
+import { cellView, type Coord, type Game } from "../engine/game";
 import { looksPressedIn, type Button, type MouseInput, type Press } from "./press";
-import { CELL_SPRITES } from "./sprites";
+import { cellSprite } from "./sprites";
 
 /** The buttons a Press knows, by `MouseEvent.button`; the Board ignores any other button. */
 const BUTTONS: readonly Button[] = ["left", "middle", "right"];
@@ -11,27 +11,6 @@ function cellAt(target: EventTarget | null): Coord | undefined {
   const element = target instanceof Element ? target.closest<HTMLElement>("[data-row]") : null;
   if (!element) return undefined;
   return { row: Number(element.dataset.row), col: Number(element.dataset.col) };
-}
-
-function spriteFor(view: CellView, pressed: boolean): string | undefined {
-  // A Cell pressed in looks like a Revealed Cell without a Clue.
-  if (pressed) return CELL_SPRITES.clues[0];
-  switch (view.kind) {
-    case "hidden":
-      return CELL_SPRITES.hidden;
-    case "flag":
-      return CELL_SPRITES.flag;
-    case "question":
-      return CELL_SPRITES.question;
-    case "revealed":
-      return CELL_SPRITES.clues[view.clue];
-    case "exploded":
-      return CELL_SPRITES.exploded;
-    case "mine":
-      return CELL_SPRITES.mine;
-    case "wrongFlag":
-      return CELL_SPRITES.wrongFlag;
-  }
 }
 
 type BoardProps = {
@@ -61,8 +40,9 @@ export function Board({ game, press, onMouse }: BoardProps) {
     return () => document.removeEventListener("mouseup", release);
   }, []);
 
+  // Each column is as wide as its Cells, which the stylesheet sizes; `auto` columns could stretch.
   return (
-    <div className="board" style={{ gridTemplateColumns: `repeat(${width}, 16px)` }}>
+    <div className="board" style={{ gridTemplateColumns: `repeat(${width}, max-content)` }}>
       {cells.map((cell) => {
         const view = cellView(game, cell);
         const isPressed = looksPressedIn(press, game, cell);
@@ -71,7 +51,7 @@ export function Board({ game, press, onMouse }: BoardProps) {
             key={`${cell.row}-${cell.col}`}
             type="button"
             className="cell sprite"
-            style={{ backgroundImage: spriteFor(view, isPressed) }}
+            style={{ backgroundImage: cellSprite(view, isPressed) }}
             data-testid={`cell-${cell.row}-${cell.col}`}
             data-state={view.kind}
             data-clue={view.kind === "revealed" ? view.clue : undefined}

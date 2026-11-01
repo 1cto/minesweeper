@@ -3,6 +3,8 @@
  * and turned into crisp SVG images. Nothing is copied from Microsoft.
  */
 
+import type { CellView } from "../engine/game";
+
 /** Rows of palette characters; "." is transparent. */
 type Bitmap = readonly string[];
 
@@ -269,21 +271,33 @@ const EXPLODED_CELL: Bitmap = REVEALED_CELL.map((line, y) =>
   y === 0 ? line : line.charAt(0) + "r".repeat(line.length - 1),
 );
 
-export const CELL_SPRITES = {
+/** A Revealed Cell's sprite for each Clue from 0 to 8. */
+const CLUE_SPRITES: readonly string[] = Array.from({ length: 9 }, (_, clue) => {
+  const glyph = CLUE_GLYPHS[clue];
+  const color = CLUE_COLORS[clue];
+  return sprite(
+    glyph && color ? overlay(REVEALED_CELL, recolor(glyph, color), 4, 3) : REVEALED_CELL,
+  );
+});
+
+/**
+ * The sprite of each kind of Cell view but a Revealed Cell, whose sprite shows its Clue. A new
+ * kind of Cell view fails to compile until it has a sprite here.
+ */
+const CELL_SPRITES: Readonly<Record<Exclude<CellView["kind"], "revealed">, string>> = {
   hidden: sprite(HIDDEN_CELL),
   flag: sprite(overlay(HIDDEN_CELL, FLAG, 2, 3)),
   question: sprite(overlay(HIDDEN_CELL, QUESTION, 4, 3)),
-  clues: Array.from({ length: 9 }, (_, clue) => {
-    const glyph = CLUE_GLYPHS[clue];
-    const color = CLUE_COLORS[clue];
-    return sprite(
-      glyph && color ? overlay(REVEALED_CELL, recolor(glyph, color), 4, 3) : REVEALED_CELL,
-    );
-  }),
   mine: sprite(overlay(REVEALED_CELL, MINE, 2, 2)),
   exploded: sprite(overlay(EXPLODED_CELL, MINE, 2, 2)),
   wrongFlag: sprite(overlay(overlay(REVEALED_CELL, MINE, 2, 2), CROSS, 2, 2)),
 };
+
+/** A Cell's sprite. A Cell pressed in looks like a Revealed Cell with a Clue of 0. */
+export function cellSprite(view: CellView, pressedIn: boolean): string | undefined {
+  if (pressedIn) return CLUE_SPRITES[0];
+  return view.kind === "revealed" ? CLUE_SPRITES[view.clue] : CELL_SPRITES[view.kind];
+}
 
 // Seven-segment counter digits (13×23)
 
