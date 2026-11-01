@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { elapsedSeconds, statusOf, type Game } from "../engine/game";
+import { elapsedSeconds, mineCounter, statusOf, type Game } from "../engine/game";
 import { LED_DIGITS, LED_MINUS, SMILEY_SPRITES } from "./sprites";
 import { useClock } from "./useClock";
 
@@ -34,14 +34,13 @@ function Timer({ game }: { game: Game }) {
 export type Face = "normal" | "surprised" | "cool" | "dead";
 
 type StatusPanelProps = {
-  mines: number;
-  /** The Game whose time the timer shows. */
+  /** The Game whose mine counter and time the panel shows. */
   game: Game;
   face: Face;
   onNewGame: () => void;
 };
 
-export function StatusPanel({ mines, game, face, onNewGame }: StatusPanelProps) {
+export function StatusPanel({ game, face, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
     "--sprite": SMILEY_SPRITES[face],
     "--sprite-pressed": SMILEY_SPRITES.pressed,
@@ -49,7 +48,7 @@ export function StatusPanel({ mines, game, face, onNewGame }: StatusPanelProps) 
 
   return (
     <div className="status-panel">
-      <LedCounter label="Mine counter" value={mines} testId="mine-counter" />
+      <LedCounter label="Mine counter" value={mineCounter(game)} testId="mine-counter" />
       <button
         type="button"
         aria-label="New game"

@@ -1,7 +1,6 @@
 import { useReducer, useState } from "react";
 import {
   difficultyOf,
-  mineCounter,
   newGame,
   statusOf,
   type Difficulty,
@@ -66,7 +65,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         onResetScores={resetScores}
       />
       <div className="game" data-testid="game">
-        <StatusPanel mines={mineCounter(game)} game={game} face={face} onNewGame={startNewGame} />
+        <StatusPanel game={game} face={face} onNewGame={startNewGame} />
         <Board game={game} press={press} onMouse={onMouse} />
       </div>
       {newBestTime && (
