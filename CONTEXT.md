@@ -48,6 +48,10 @@ _Avoid_: Mark
 The player's "?" marker on a Hidden Cell, meaning the player is unsure whether it contains a Mine.
 _Avoid_: Mark, Maybe
 
+**Marks (?)**:
+The player's preference, named after the original's menu item, for whether the right button can put a Question on a Cell or only a Flag.
+_Avoid_: Marks on its own, Question mode
+
 **Chord**:
 The player's action on a Cell that, when the Cell is Revealed and its Clue equals the number of its Flagged Neighbors, Reveals all of that Cell's other Hidden Neighbors at once; on any other Cell it does nothing.
 _Avoid_: Double-click, Area open
