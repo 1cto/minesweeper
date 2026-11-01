@@ -130,3 +130,19 @@ test("a second finger on the Board's border cancels the Touch: nothing is Reveal
   await expect(smiley(page)).toHaveAttribute("data-face", "normal");
   await expect(hiddenCells(page)).toHaveCount(81);
 });
+
+test("a Tap on a Clue whose Mines are all Flagged Chords, here clearing the Board for a Win", async ({
+  page,
+}) => {
+  await openPaused(page);
+  await cell(page, 1, 1).tap();
+  const finger = await fingerDown(page, cell(page, 0, 0));
+  await page.clock.runFor(400);
+  await finger.lift();
+  await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "flag");
+
+  await cell(page, 1, 1).tap();
+
+  await expect(hiddenCells(page)).toHaveCount(0);
+  await expect(smiley(page)).toHaveAttribute("data-face", "cool");
+});
