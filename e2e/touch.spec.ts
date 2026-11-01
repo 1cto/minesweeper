@@ -131,7 +131,7 @@ test("a second finger on the Board's border cancels the Touch: nothing is Reveal
   await expect(hiddenCells(page)).toHaveCount(81);
 });
 
-test("a Tap on a Clue whose Mines are all Flagged Chords, here clearing the Board for a Win", async ({
+test("a Tap on a Revealed Cell whose Clue equals its Flagged Neighbors Chords, here clearing the Board for a Win", async ({
   page,
 }) => {
   await openPaused(page);

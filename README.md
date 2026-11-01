@@ -10,7 +10,7 @@ A faithful browser recreation of Windows 95/98 Minesweeper, built with React and
 
 - The classic rules: three Difficulties (Beginner, Intermediate, Expert), a first Reveal that is never a Mine, Cascades, Flags and Questions on the right button, and the Chord on the middle button or both buttons.
 - The original feel: Cells press in under the mouse and open on release, the smiley reacts, the timer counts to 999 and the mine counter can go negative.
-- Touch play on tablets: a Tap Reveals a Cell when the finger lifts, a Long Touch, a finger held for 400 ms, puts, changes or removes its Flag or Question at once, and a Tap on a Clue Chords. A stylus plays like a finger, and a mouse or trackpad works alongside as before.
+- Touch play on tablets: a Tap Reveals a Cell when the finger lifts, a Long Touch, a finger held for 400 ms, puts, changes or removes its Flag or Question at once, and a Tap on a Revealed Cell Chords there. A stylus plays like a finger, and a mouse or trackpad works alongside as before.
 - The original look: a Windows 98 window with Game and Help menus, Win and Loss presentations, and Best Times with player names kept in the browser.
 - Drawn at the largest whole-number scale (×1, ×2 or ×3) that fits the screen, so every pixel stays crisp.
 

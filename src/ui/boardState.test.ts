@@ -416,7 +416,7 @@ describe("once the Game is over", () => {
 
 describe("a Touch on a Revealed Cell", () => {
   /** (1, 1) Revealed with a Clue of 1, the Mine at (0, 0) Flagged and a Question on (0, 1). */
-  const flaggedRight: BoardState = {
+  const correctlyFlagged: BoardState = {
     game: revealOrMark(READY, [
       reveal(clueOf1),
       cycleMarker({ row: 0, col: 0 }),
@@ -428,7 +428,7 @@ describe("a Touch on a Revealed Cell", () => {
   };
 
   it("Chords when the finger lifts: the other Hidden Neighbors are Revealed, the Question too, with Cascades", () => {
-    const touched = applyAll(flaggedRight, [fingerDown(clueOf1)]);
+    const touched = applyAll(correctlyFlagged, [fingerDown(clueOf1)]);
     expect(picture(touched.game)).toEqual(["F?###", "#1###", "#####"]);
 
     const chorded = applyBoardEvent(touched, fingerUp({ now: 100 }));
@@ -437,8 +437,8 @@ describe("a Touch on a Revealed Cell", () => {
     expect(picture(chorded.game)).toEqual(["F1000", "11011", "0001F"]);
   });
 
-  it("pushes in the Hidden Neighbors and those with a Question, never a Flag, until the finger lifts, held past 400 ms too", () => {
-    const touched = applyAll(flaggedRight, [fingerDown(clueOf1)]);
+  it("pushes in the Hidden Neighbors and those with a Question, never a Flag, until the Touch ends, held past 400 ms too", () => {
+    const touched = applyAll(correctlyFlagged, [fingerDown(clueOf1)]);
     expect(pressedIn(touched)).toEqual([".oo..", "o.o..", "ooo.."]);
     expect(isPressOrTouchUnderWay(touched)).toBe(true);
 
@@ -449,7 +449,7 @@ describe("a Touch on a Revealed Cell", () => {
   });
 
   it("held past 400 ms still Chords when the finger lifts, and never becomes a Long Touch", () => {
-    const held = applyAll(flaggedRight, [fingerDown(clueOf1), stillHeld({ now: 400 })]);
+    const held = applyAll(correctlyFlagged, [fingerDown(clueOf1), stillHeld({ now: 400 })]);
     expect(picture(held.game)).toEqual(["F?###", "#1###", "#####"]);
     expect(isPressOrTouchUnderWay(held)).toBe(true);
 
@@ -458,13 +458,13 @@ describe("a Touch on a Revealed Cell", () => {
   });
 
   it("Chords into a Loss when a Flag is wrong", () => {
-    const flaggedWrong: BoardState = {
+    const wronglyFlagged: BoardState = {
       game: revealOrMark(READY, [reveal(clueOf1), cycleMarker({ row: 0, col: 1 })]),
       press: undefined,
       touch: undefined,
     };
 
-    const chorded = applyAll(flaggedWrong, [fingerDown(clueOf1), fingerUp({ now: 100 })]);
+    const chorded = applyAll(wronglyFlagged, [fingerDown(clueOf1), fingerUp({ now: 100 })]);
 
     expect(statusOf(chorded.game)).toBe("lost");
     expect(cellView(chorded.game, { row: 0, col: 0 })).toEqual({ kind: "exploded" });
@@ -475,12 +475,16 @@ describe("a Touch on a Revealed Cell", () => {
     ["the browser taking the finger over", browserCancels()],
     ["a second finger", fingerDown({ row: 2, col: 2 }, { pointer: 2 })],
   ])("cancelled by %s Chords nothing", (_, cancel) => {
-    const lifted = applyAll(flaggedRight, [fingerDown(clueOf1), cancel, fingerUp({ now: 100 })]);
-    expect(lifted.game).toBe(flaggedRight.game);
+    const lifted = applyAll(correctlyFlagged, [
+      fingerDown(clueOf1),
+      cancel,
+      fingerUp({ now: 100 }),
+    ]);
+    expect(lifted.game).toBe(correctlyFlagged.game);
     expect(isPressOrTouchUnderWay(lifted)).toBe(false);
   });
 
-  it("whose Clue doesn't match its Flagged Neighbors Reveals nothing, whether a Tap or held past 400 ms", () => {
+  it("whose Clue doesn't match its Flagged Neighbors Reveals or Flags nothing, whether a Tap or held past 400 ms", () => {
     const playing: BoardState = {
       game: revealOrMark(READY, [reveal(clueOf1)]),
       press: undefined,

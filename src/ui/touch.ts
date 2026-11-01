@@ -35,7 +35,7 @@ type Held = {
   readonly cell: Coord;
   readonly origin: Point;
   readonly since: number;
-  readonly chords: boolean;
+  readonly beganOnRevealed: boolean;
   readonly long: boolean;
 };
 
@@ -47,11 +47,11 @@ const seal = (held: Held | undefined) => held as unknown as Touch;
  * that is not Revealed, once the finger has been held for `LONG_TOUCH_MS` the Touch becomes a Long
  * Touch and cycles the marker at once, as the right button does; lifting the finger before that
  * Reveals the Cell the Touch began on, and after it asks for nothing more. On a Revealed Cell,
- * lifting the finger Chords there however long it was held. The finger wandering more than `TOUCH_SLOP_PX`,
- * the browser taking it over, or a second finger going down anywhere on the Board ends the Touch
- * with no action; a marker already cycled stays. Only the Touch's own finger moves, lifts or
- * cancels it, and a Touch starts only on a Cell of an unfinished Game. An input that changes
- * nothing returns the same Touch.
+ * lifting the finger Chords there however long it was held. The finger wandering more than
+ * `TOUCH_SLOP_PX`, the browser taking it over, or a second finger going down anywhere on the Board
+ * ends the Touch with no action; a marker already cycled stays. Only the Touch's own finger moves,
+ * lifts or cancels it, and a Touch starts only on a Cell of an unfinished Game. An input that
+ * changes nothing returns the same Touch.
  */
 export function applyTouch(
   touch: Touch,
@@ -66,8 +66,10 @@ export function applyTouch(
     const status = statusOf(game);
     const { pointer, cell, at } = input;
     if (!cell || status === "won" || status === "lost") return { touch };
-    const chords = cellView(game, cell).kind === "revealed";
-    return { touch: seal({ pointer, cell, origin: at, since: now, chords, long: false }) };
+    const beganOnRevealed = cellView(game, cell).kind === "revealed";
+    return {
+      touch: seal({ pointer, cell, origin: at, since: now, beganOnRevealed, long: false }),
+    };
   }
   if (!held || ("pointer" in input && input.pointer !== held.pointer)) return { touch };
   if (input.type === "cancel") return { touch: undefined };
@@ -75,7 +77,7 @@ export function applyTouch(
     const wandered = Math.hypot(input.at.x - held.origin.x, input.at.y - held.origin.y);
     return { touch: wandered > TOUCH_SLOP_PX ? undefined : touch };
   }
-  if (held.chords) {
+  if (held.beganOnRevealed) {
     return input.type === "up"
       ? { touch: undefined, intent: { type: "chord", cell: held.cell } }
       : { touch };
@@ -107,7 +109,7 @@ export function looksPressedIn(touch: Touch, game: Game, cell: Coord): boolean {
   if (!held || held.long) return false;
   const rows = Math.abs(cell.row - held.cell.row);
   const cols = Math.abs(cell.col - held.cell.col);
-  const under = held.chords ? rows <= 1 && cols <= 1 : rows === 0 && cols === 0;
+  const under = held.beganOnRevealed ? rows <= 1 && cols <= 1 : rows === 0 && cols === 0;
   if (!under) return false;
   const { kind } = cellView(game, cell);
   return kind === "hidden" || kind === "question";
