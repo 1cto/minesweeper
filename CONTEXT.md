@@ -49,7 +49,7 @@ The player's "?" marker on a Hidden Cell, meaning the player is unsure whether i
 _Avoid_: Mark, Maybe
 
 **Marks (?)**:
-The player's preference, named after the original's menu item, for whether the right button can put a Question on a Cell or only a Flag.
+The player's preference, named after the original's menu item, for whether the right button and a Long Touch can put a Question on a Cell or only a Flag.
 _Avoid_: Marks on its own, Question mode
 
 **Chord**:
@@ -59,6 +59,18 @@ _Avoid_: Double-click, Area open
 **Press**:
 The player holding mouse buttons down on the Board, from the first button going down over a Cell until one of them is released; while it lasts, the Cells it would act on look pressed in.
 _Avoid_: Gesture, Hold, Click
+
+**Touch**:
+The player holding one finger on the Board, from touching a Cell until lifting the finger; it acts only on the Cell it began on, and while it lasts, the Cells it would act on look pressed in.
+_Avoid_: Press, Gesture
+
+**Tap**:
+A Touch that ends before it becomes a Long Touch.
+_Avoid_: Click, Short touch
+
+**Long Touch**:
+A Touch held on a Hidden Cell long enough to put, change or remove its Flag or Question, as the right button does, without waiting for the finger to lift.
+_Avoid_: Long press, Long tap, Hold
 
 **Cascade**:
 The automatic Reveal of every Neighbor of a Cell whose Clue is 0, continuing through each newly Revealed Cell whose Clue is also 0.
