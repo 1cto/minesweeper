@@ -61,11 +61,11 @@ The player holding mouse buttons down on the Board, from the first button going 
 _Avoid_: Gesture, Hold, Click
 
 **Touch**:
-The player holding one finger or a stylus on the Board, from touching a Cell until lifting it; it acts only on the Cell it began on, and while it lasts, the Cells it would act on look pressed in.
+The player holding one finger or a stylus on the Board, from touching a Cell until lifting it, unless sliding away, a second finger or the page scrolling or zooming cancels it first; it acts only on the Cell it began on and a cancelled Touch acts no further, and while it lasts, the Cells it would act on look pressed in.
 _Avoid_: Press, Gesture
 
 **Tap**:
-A Touch that ends before it becomes a Long Touch.
+A Touch lifted, not cancelled, before it becomes a Long Touch.
 _Avoid_: Click, Short touch
 
 **Long Touch**:
