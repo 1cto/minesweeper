@@ -26,7 +26,7 @@ const smiley = (page: Page) => page.getByRole("button", { name: "New game" });
 
 /**
  * Stops the clock before the page loads, so a screenshot never depends on how long the clicks
- * took: the timer reads 000 however much real time passes between the first Reveal and the end.
+ * took: the Timer reads 001 however much real time passes between the first Reveal and the end.
  */
 async function freezeClock(page: Page) {
   const time = new Date("2026-01-01T00:00:00Z");

@@ -25,16 +25,24 @@ test("the timer stays at 000 until the first Reveal", async ({ page }) => {
   await expect(timer(page)).toHaveAccessibleName("Timer: 000");
 });
 
-test("the timer counts whole seconds from the first Reveal", async ({ page }) => {
+test("the Timer shows 001 right after the first Reveal", async ({ page }) => {
+  await openWithPausedClock(page);
+
+  await revealNextToTheMine(page);
+
+  await expect(timer(page)).toHaveAccessibleName("Timer: 001");
+});
+
+test("the Timer adds one for each whole second after the first Reveal", async ({ page }) => {
   await openWithPausedClock(page);
   await page.clock.runFor(3_000);
 
   await revealNextToTheMine(page);
   await page.clock.runFor(1_000);
-  await expect(timer(page)).toHaveAccessibleName("Timer: 001");
+  await expect(timer(page)).toHaveAccessibleName("Timer: 002");
 
   await page.clock.runFor(4_000);
-  await expect(timer(page)).toHaveAccessibleName("Timer: 005");
+  await expect(timer(page)).toHaveAccessibleName("Timer: 006");
 });
 
 test("the timer stops when the Game is lost", async ({ page }) => {
@@ -46,7 +54,7 @@ test("the timer stops when the Game is lost", async ({ page }) => {
   await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "exploded");
   await page.clock.runFor(10_000);
 
-  await expect(timer(page)).toHaveAccessibleName("Timer: 003");
+  await expect(timer(page)).toHaveAccessibleName("Timer: 004");
 });
 
 test("the timer never goes past 999", async ({ page }) => {
@@ -65,14 +73,14 @@ test("the timer keeps counting while a hidden tab's timers are throttled", async
   // A hidden tab runs timers rarely; fastForward jumps a minute and fires each timer at most once.
   await page.clock.fastForward("01:00");
 
-  await expect(timer(page)).toHaveAccessibleName("Timer: 060");
+  await expect(timer(page)).toHaveAccessibleName("Timer: 061");
 });
 
 test("a new Game resets the timer to 000", async ({ page }) => {
   await openWithPausedClock(page);
   await revealNextToTheMine(page);
   await page.clock.runFor(3_000);
-  await expect(timer(page)).toHaveAccessibleName("Timer: 003");
+  await expect(timer(page)).toHaveAccessibleName("Timer: 004");
 
   await page.getByRole("button", { name: "New game" }).click();
   await page.clock.runFor(5_000);

@@ -166,7 +166,7 @@ describe("the timer", () => {
       chord(middle, 17_200),
     ]);
 
-    expect(elapsedSeconds(lost, 60_000)).toBe(7);
+    expect(elapsedSeconds(lost, 60_000)).toBe(8);
   });
 
   it("stops at a Chord that wins the Game, which Flags every Mine", () => {
@@ -183,6 +183,6 @@ describe("the timer", () => {
 
     expect(statusOf(won)).toBe("won");
     expect(picture(won)).toEqual(["F1000", "11011", "0001F"]);
-    expect(elapsedSeconds(won, 60_000)).toBe(4);
+    expect(elapsedSeconds(won, 60_000)).toBe(5);
   });
 });

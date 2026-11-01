@@ -118,7 +118,10 @@ function parseObject(json: string | null): Readonly<Record<string, unknown>> {
   }
 }
 
-/** A stored Best Time, if it is one the timer could show. */
+/**
+ * A stored Best Time, if it is one the Timer could show. That includes 0, which earlier versions,
+ * whose Timer started at 0, stored for a Win within its first second.
+ */
 function asBestTime(value: unknown): BestTime | undefined {
   if (typeof value !== "object" || value === null) return undefined;
   const { seconds, name } = value as Readonly<Record<string, unknown>>;
