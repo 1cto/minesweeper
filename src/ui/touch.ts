@@ -27,14 +27,15 @@ declare const sealed: unique symbol;
 export type Touch = { readonly [sealed]: true } | undefined;
 
 /**
- * The finger on the Board, the Cell it began on, where and when it went down, and whether the
- * Touch has become a Long Touch.
+ * The finger on the Board, the Cell it began on, where and when it went down, whether that Cell
+ * was Revealed, so that lifting the finger Chords, and whether the Touch has become a Long Touch.
  */
 type Held = {
   readonly pointer: number;
   readonly cell: Coord;
   readonly origin: Point;
   readonly since: number;
+  readonly beganOnRevealed: boolean;
   readonly long: boolean;
 };
 
@@ -42,14 +43,15 @@ const open = (touch: Touch) => touch as unknown as Held | undefined;
 const seal = (held: Held | undefined) => held as unknown as Touch;
 
 /**
- * The Touch after `input` at time `now`, and the action it asks of the engine, if any. Once the
- * finger has been held for `LONG_TOUCH_MS`, the Touch becomes a Long Touch and cycles the marker
- * at once, as the right button does; lifting the finger before that Reveals the Cell the Touch
- * began on, and after it asks for nothing more. The finger wandering more than `TOUCH_SLOP_PX`,
- * the browser taking it over, or a second finger going down anywhere on the Board ends the Touch
- * with no action; a marker already cycled stays. Only the Touch's own finger moves, lifts or
- * cancels it, and a Touch starts only on a Cell of an unfinished Game. An input that changes
- * nothing returns the same Touch.
+ * The Touch after `input` at time `now`, and the action it asks of the engine, if any. On a Cell
+ * that is not Revealed, once the finger has been held for `LONG_TOUCH_MS` the Touch becomes a Long
+ * Touch and cycles the marker at once, as the right button does; lifting the finger before that
+ * Reveals the Cell the Touch began on, and after it asks for nothing more. On a Revealed Cell,
+ * lifting the finger Chords there however long it was held. The finger wandering more than
+ * `TOUCH_SLOP_PX`, the browser taking it over, or a second finger going down anywhere on the Board
+ * ends the Touch with no action; a marker already cycled stays. Only the Touch's own finger moves,
+ * lifts or cancels it, and a Touch starts only on a Cell of an unfinished Game. An input that
+ * changes nothing returns the same Touch.
  */
 export function applyTouch(
   touch: Touch,
@@ -64,13 +66,21 @@ export function applyTouch(
     const status = statusOf(game);
     const { pointer, cell, at } = input;
     if (!cell || status === "won" || status === "lost") return { touch };
-    return { touch: seal({ pointer, cell, origin: at, since: now, long: false }) };
+    const beganOnRevealed = cellView(game, cell).kind === "revealed";
+    return {
+      touch: seal({ pointer, cell, origin: at, since: now, beganOnRevealed, long: false }),
+    };
   }
   if (!held || ("pointer" in input && input.pointer !== held.pointer)) return { touch };
   if (input.type === "cancel") return { touch: undefined };
   if (input.type === "move") {
     const wandered = Math.hypot(input.at.x - held.origin.x, input.at.y - held.origin.y);
     return { touch: wandered > TOUCH_SLOP_PX ? undefined : touch };
+  }
+  if (held.beganOnRevealed) {
+    return input.type === "up"
+      ? { touch: undefined, intent: { type: "chord", cell: held.cell } }
+      : { touch };
   }
   // The moment is measured from the event times, so a lift that comes after it is a Long Touch
   // even when the moment itself was delivered late.
@@ -91,11 +101,16 @@ export function isUnderWay(touch: Touch): boolean {
 
 /**
  * Whether `cell` looks pressed in: the Cell the Touch began on does until the Touch becomes a
- * Long Touch. Only a Hidden Cell, or one with a Question, can look pressed in.
+ * Long Touch; on a Revealed Cell, so do its Neighbors, the 3×3 block a Chord pushes in. Only a
+ * Hidden Cell, or one with a Question, can look pressed in.
  */
 export function looksPressedIn(touch: Touch, game: Game, cell: Coord): boolean {
   const held = open(touch);
-  if (!held || held.long || held.cell.row !== cell.row || held.cell.col !== cell.col) return false;
+  if (!held || held.long) return false;
+  const rows = Math.abs(cell.row - held.cell.row);
+  const cols = Math.abs(cell.col - held.cell.col);
+  const under = held.beganOnRevealed ? rows <= 1 && cols <= 1 : rows === 0 && cols === 0;
+  if (!under) return false;
   const { kind } = cellView(game, cell);
   return kind === "hidden" || kind === "question";
 }
