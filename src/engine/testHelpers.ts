@@ -2,6 +2,7 @@
 import {
   applyAction,
   cellView,
+  difficultyOf,
   type Action,
   type Coord,
   type Difficulty,
@@ -43,7 +44,7 @@ export function reveal(cell: Coord, now = 0) {
  * "*" another Mine and "X" a wrong Flag.
  */
 export function picture(game: Game): string[] {
-  const { width, height } = game.difficulty;
+  const { width, height } = difficultyOf(game);
   return Array.from({ length: height }, (_, row) =>
     Array.from({ length: width }, (_, col) => {
       const view = cellView(game, { row, col });

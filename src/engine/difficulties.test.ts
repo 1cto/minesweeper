@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   applyAction,
   DIFFICULTIES,
+  difficultyOf,
   EXPERT,
   INTERMEDIATE,
   layoutOf,
-  mineCount,
+  mineCounter,
   newGame,
   statusOf,
 } from "./game";
@@ -21,12 +22,22 @@ describe("the Difficulties", () => {
   });
 });
 
+describe("a Game's Difficulty", () => {
+  it("is the one the Game was started on, before and after the first Reveal", () => {
+    const game = newGame(EXPERT, { random: seededRandom(1) });
+
+    const playing = applyAction(game, reveal({ row: 0, col: 0 }));
+
+    expect([difficultyOf(game), difficultyOf(playing)]).toEqual([EXPERT, EXPERT]);
+  });
+});
+
 describe("a new Intermediate Game", () => {
   it("has a 16×16 Board of Hidden Cells and 40 Mines", () => {
     const game = newGame(INTERMEDIATE, { random: unusedRandom });
 
     expect(picture(game)).toEqual(Array.from({ length: 16 }, () => "################"));
-    expect(mineCount(game)).toBe(40);
+    expect(mineCounter(game)).toBe(40);
   });
 });
 
@@ -37,7 +48,7 @@ describe("a new Expert Game", () => {
     expect(picture(game)).toEqual(
       Array.from({ length: 16 }, () => "##############################"),
     );
-    expect(mineCount(game)).toBe(99);
+    expect(mineCounter(game)).toBe(99);
   });
 });
 

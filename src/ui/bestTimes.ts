@@ -1,4 +1,11 @@
-import { DIFFICULTIES, finalSeconds, statusOf, type Difficulty, type Game } from "../engine/game";
+import {
+  DIFFICULTIES,
+  difficultyOf,
+  finalSeconds,
+  statusOf,
+  type Difficulty,
+  type Game,
+} from "../engine/game";
 import type { KeyValueStore } from "./storage";
 
 const ANONYMOUS = "Anonymous";
@@ -56,7 +63,8 @@ export function saveBestTimes(store: KeyValueStore, bestTimes: BestTimes): void 
 /**
  * The Best Times after `game`: a Win faster than its Difficulty's Best Time waits for a name. Each
  * Win is compared once, so considering it again, even after Reset Scores, changes nothing. That
- * relies on the engine handing back the very same Game for every action a finished Game ignores.
+ * relies on the engine's promise on `applyAction`: every action a finished Game ignores returns
+ * that very Game.
  */
 export function considerGame(bestTimes: BestTimes, game: Game): BestTimes {
   const held = open(bestTimes);
@@ -64,8 +72,9 @@ export function considerGame(bestTimes: BestTimes, game: Game): BestTimes {
   if (game === held.considered || statusOf(game) !== "won" || seconds === undefined) {
     return bestTimes;
   }
-  const faster = seconds < bestTimeOf(bestTimes, game.difficulty).seconds;
-  const waiting = faster ? { difficulty: game.difficulty, seconds } : held.waiting;
+  const difficulty = difficultyOf(game);
+  const faster = seconds < bestTimeOf(bestTimes, difficulty).seconds;
+  const waiting = faster ? { difficulty, seconds } : held.waiting;
   return seal({ ...held, waiting, considered: game });
 }
 

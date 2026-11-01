@@ -1,16 +1,8 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyAction,
-  BEGINNER,
-  cellView,
-  layoutOf,
-  mineCount,
-  mineCounter,
-  newGame,
-  statusOf,
-} from "./game";
+import { applyAction, BEGINNER, cellView, layoutOf, mineCounter, newGame, statusOf } from "./game";
 import {
   cellsOf,
+  chord,
   cycleMarker,
   layoutFrom,
   picture,
@@ -29,21 +21,6 @@ describe("a new Game", () => {
 
     expect(statusOf(game)).toBe("ready");
     expect(cellsOf(BEGINNER).every((cell) => cellView(game, cell).kind === "hidden")).toBe(true);
-  });
-});
-
-describe("the Mine count", () => {
-  it("is the Difficulty's Mine count before the Layout is fixed", () => {
-    expect(mineCount(newGame(BEGINNER, { random: unusedRandom }))).toBe(10);
-  });
-
-  it("is the number of Mines in an explicit Layout", () => {
-    const game = newGame(SQUARE_3, {
-      random: unusedRandom,
-      layout: layoutFrom(["x..", "...", "..."]),
-    });
-
-    expect(mineCount(game)).toBe(1);
   });
 });
 
@@ -164,6 +141,23 @@ describe("the end of a Game", () => {
     expect(statusOf(after)).toBe("won");
     expect(cellView(after, { row: 0, col: 0 })).toEqual({ kind: "flag" });
   });
+
+  it("hands back that very Game for every action after a Win or a Loss", () => {
+    const game = newGame(WIDE_5x3, {
+      random: unusedRandom,
+      layout: layoutFrom(["x....", ".....", "....."]),
+    });
+    const won = applyAction(game, reveal({ row: 2, col: 4 }));
+    const lost = applyAction(game, reveal({ row: 0, col: 0 }));
+    const cell = { row: 1, col: 1 };
+    expect([won, lost].map(statusOf)).toEqual(["won", "lost"]);
+
+    for (const finished of [won, lost]) {
+      for (const action of [reveal(cell), cycleMarker(cell), chord(cell)]) {
+        expect(applyAction(finished, action)).toBe(finished);
+      }
+    }
+  });
 });
 
 describe("the Layout", () => {
@@ -266,6 +260,19 @@ describe("Flags and Questions", () => {
 describe("the mine counter", () => {
   const twoMines = () =>
     newGame(SQUARE_3, { random: unusedRandom, layout: layoutFrom(["x..", "...", "..x"]) });
+
+  it("is the Difficulty's Mine count without Flags, before the Layout is fixed", () => {
+    expect(mineCounter(newGame(BEGINNER, { random: unusedRandom }))).toBe(10);
+  });
+
+  it("is the number of Mines in an explicit Layout, without Flags", () => {
+    const game = newGame(SQUARE_3, {
+      random: unusedRandom,
+      layout: layoutFrom(["x..", "...", "..."]),
+    });
+
+    expect(mineCounter(game)).toBe(1);
+  });
 
   it("is the Mine count minus the Flags, and Questions don't count", () => {
     const next = revealOrMark(twoMines(), [
