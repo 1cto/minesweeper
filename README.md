@@ -10,6 +10,7 @@ A faithful browser recreation of Windows 95/98 Minesweeper, built with React and
 
 - The classic rules: three Difficulties (Beginner, Intermediate, Expert), a first Reveal that is never a Mine, Cascades, Flags and Questions on the right button, and the Chord on the middle button or both buttons.
 - The original feel: Cells press in under the mouse and open on release, the smiley reacts, the timer counts to 999 and the mine counter can go negative.
+- Touch play on tablets: a Tap Reveals a Cell when the finger lifts, and a Long Touch, a finger held for 400 ms, puts, changes or removes its Flag or Question at once. A stylus plays like a finger, and a mouse or trackpad works alongside as before.
 - The original look: a Windows 98 window with Game and Help menus, Win and Loss presentations, and Best Times with player names kept in the browser.
 - Drawn at the largest whole-number scale (×1, ×2 or ×3) that fits the screen, so every pixel stays crisp.
 
@@ -36,7 +37,7 @@ React 19, TypeScript in strict mode, Vite, pnpm, Vitest, Playwright, ESLint and 
 The vocabulary used in the code, tests and issues (Board, Cell, Reveal, Flag, Chord, Cascade, Layout, Best Time, …) is defined in the domain glossary, [`CONTEXT.md`](CONTEXT.md).
 
 - **Engine** (`src/engine/`): the rules as pure functions over immutable state, with no framework and no access to the clock or global randomness. `newGame(difficulty, { random, layout? })` creates a Game and `applyAction(game, action)` returns the next one; every action carries the current time. A Game is sealed: outside the engine it is read only through queries such as `cellView`, `mineCounter` and `elapsedSeconds`, which describe what the player sees. Why it is shaped this way: [ADR 0001](docs/adr/0001-pure-game-engine.md).
-- **UI** (`src/ui/`): React components that draw the window, plus pure modules for the rules that live outside the engine. The Press module (`press.ts`) turns mouse input into requests for the engine: press, drag, release and the Chord. A reducer (`boardState.ts`) applies each request to the Game in the same step, and `Board.tsx` only translates browser events. The Best Times module (`bestTimes.ts`) decides when a Win is a new Best Time and what is recorded. Every graphic is original pixel art written as rows of characters in `sprites.ts` and turned into crisp SVG images; the integer scale uses CSS `zoom`.
+- **UI** (`src/ui/`): React components that draw the window, plus pure modules for the rules that live outside the engine. The Press module (`press.ts`) turns mouse input into requests for the engine: press, drag, release and the Chord. The Touch module (`touch.ts`) does the same for a finger or a stylus: the Tap, the Long Touch, timed from the events themselves, and the slide, second finger or browser scroll that cancels a Touch. A reducer (`boardState.ts`) applies each request to the Game in the same step, lets one device act at a time and tells the Board which Cells look pressed in, and `Board.tsx` only translates browser events. The Best Times module (`bestTimes.ts`) decides when a Win is a new Best Time and what is recorded. Every graphic is original pixel art written as rows of characters in `sprites.ts` and turned into crisp SVG images; the integer scale uses CSS `zoom`.
 - **Browser storage** (`src/ui/storage.ts`): a key-to-string store whose reads and writes never throw, so the game keeps working when storage is blocked. It keeps the chosen Difficulty and the Marks (?) setting, and the Best Times module keeps the Best Times and the last name entered through it.
 
 ## Testing
@@ -44,8 +45,8 @@ The vocabulary used in the code, tests and issues (Board, Cell, Reveal, Flag, Ch
 Tests sit at agreed seams and check only what a user of that seam can observe.
 
 - **Engine** (Vitest, `src/engine/*.test.ts`): every rule is tested through the engine's public interface. Small Boards are drawn as text (`"x"` for a Mine), and the first-Reveal safety is checked across hundreds of seeded random sources.
-- **UI modules** (Vitest, `src/ui/*.test.ts`): the Press module, the Board's reducer and the Best Times module are pure, so their rules are tested through their interfaces without a browser, including Best Times saved in a broken or unreadable form.
-- **Browser** (Playwright, `e2e/`): real mouse input against a test build.
+- **UI modules** (Vitest, `src/ui/*.test.ts`): the Press module, the Board's reducer and the Best Times module are pure, so their rules are tested through their interfaces without a browser, including Best Times saved in a broken or unreadable form. The Touch rules, the 400 ms of a Long Touch included, are tested through the Board's reducer with explicit times.
+- **Browser** (Playwright, `e2e/`): real mouse input, and real touch input in a tablet-sized viewport, against a test build.
   - A test-only `?layout=` URL parameter fixes where the Mines are. It only exists in test builds, and `pnpm check:no-test-hooks` fails CI if it ever reaches the public build.
   - Playwright's clock controls time, so timer and Best Time tests are exact.
   - Screenshot baselines pin the look pixel for pixel; text drawn with the system font is masked, so the baselines match on any machine.
