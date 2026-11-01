@@ -55,3 +55,5 @@ GitHub GraphQL is blocked there, so `gh issue …` and `gh pr …` fail. Use the
 - **Add / remove a label**: `gh api repos/1cto/minesweeper/issues/<n>/labels -f 'labels[]=...'` / `gh api -X DELETE repos/1cto/minesweeper/issues/<n>/labels/<name>`
 - **Close**: `gh api -X PATCH repos/1cto/minesweeper/issues/<n> -f state=closed`
 - **Open a PR**: `gh api repos/1cto/minesweeper/pulls -f title="..." -f head=<branch> -f base=main -f body="..."`
+
+The proxy also refuses to delete branches on GitHub, both with `git push --delete` and through the REST API; ask the user to delete them under Branches.

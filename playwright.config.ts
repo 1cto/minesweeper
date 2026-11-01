@@ -10,6 +10,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // A test that only passes on its retry is flaky; CI fails on it rather than letting it pass quietly.
+  failOnFlakyTests: !!process.env.CI,
   reporter: process.env.CI ? [["github"], ["list"], ["html", { open: "never" }]] : "list",
   use: {
     // The site is published as a GitHub Pages project page, so it is served under /minesweeper/.
