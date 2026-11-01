@@ -26,7 +26,7 @@ const READY = newGame(WIDE_5x3, {
   random: unusedRandom,
   layout: layoutFrom(["x....", ".....", "....x"]),
 });
-const START: BoardState = { game: READY, press: undefined };
+const START: BoardState = { game: READY, press: undefined, touch: undefined };
 const clueOf1 = { row: 1, col: 1 };
 
 const mouse = (
@@ -40,6 +40,53 @@ const mouse = (
     : { type: "mouse", input: { type: "up", button, cell }, now, questionsEnabled };
 
 const applyAll = (state: BoardState, events: BoardEvent[]) => events.reduce(applyBoardEvent, state);
+
+type TouchOptions = { now?: number; pointer?: number; questionsEnabled?: boolean };
+
+/** Where every finger goes down on screen; moves are measured from here. */
+const ORIGIN: Point = { x: 100, y: 100 };
+
+const touchEvent = (
+  input: TouchInput,
+  { now = 0, questionsEnabled = true }: TouchOptions,
+): BoardEvent => ({ type: "touch", input, now, questionsEnabled });
+
+/** A finger going down on `cell` at `ORIGIN`; finger 1 unless `pointer` says otherwise. */
+const fingerDown = (cell: Coord, options: TouchOptions = {}) =>
+  touchEvent({ type: "down", pointer: options.pointer ?? 1, cell, at: ORIGIN }, options);
+
+/** A finger going down on the Board's border, between no Cells. */
+const fingerDownOnTheBorder = (options: TouchOptions = {}) =>
+  touchEvent({ type: "down", pointer: options.pointer ?? 1, at: ORIGIN }, options);
+
+const fingerMove = (at: Point, options: TouchOptions = {}) =>
+  touchEvent({ type: "move", pointer: options.pointer ?? 1, at }, options);
+
+const fingerUp = (options: TouchOptions = {}) =>
+  touchEvent({ type: "up", pointer: options.pointer ?? 1 }, options);
+
+/** The browser taking the finger over, to scroll or zoom the page. */
+const browserCancels = (options: TouchOptions = {}) =>
+  touchEvent({ type: "cancel", pointer: options.pointer ?? 1 }, options);
+
+/** The finger still on the Board at `now`: the moment a Touch may become a Long Touch. */
+const stillHeld = (options: TouchOptions = {}) => touchEvent({ type: "held" }, options);
+
+/** A finger held on `cell` from `now` until it becomes a Long Touch, and lifted. */
+const longTouch = (cell: Coord, { now = 0, ...options }: TouchOptions = {}) => [
+  fingerDown(cell, { now, ...options }),
+  stillHeld({ now: now + 400, ...options }),
+  fingerUp({ now: now + 500, ...options }),
+];
+
+/** Draws which Cells look pressed in: "o" for pressed in, "." otherwise. */
+function pressedIn(state: BoardState): string[] {
+  return Array.from({ length: WIDE_5x3.height }, (_, row) =>
+    Array.from({ length: WIDE_5x3.width }, (_, col) =>
+      looksPressedIn(state, { row, col }) ? "o" : ".",
+    ).join(""),
+  );
+}
 
 describe("a mouse event on the Board", () => {
   it("passes the Press's request to the engine, stamped with the event's time", () => {
@@ -114,25 +161,6 @@ describe("a new Game", () => {
   });
 });
 
-type TouchOptions = { now?: number; pointer?: number; questionsEnabled?: boolean };
-
-const touchEvent = (
-  input: TouchInput,
-  { now = 0, questionsEnabled = true }: TouchOptions,
-): BoardEvent => ({ type: "touch", input, now, questionsEnabled });
-
-/** A finger going down on `cell`, at `at` on screen; finger 1 unless `pointer` says otherwise. */
-const fingerDown = (cell: Coord, options: TouchOptions & { at?: Point } = {}) =>
-  touchEvent(
-    { type: "down", pointer: options.pointer ?? 1, cell, at: options.at ?? ORIGIN },
-    options,
-  );
-
-const fingerUp = (options: TouchOptions = {}) =>
-  touchEvent({ type: "up", pointer: options.pointer ?? 1 }, options);
-
-const ORIGIN: Point = { x: 100, y: 100 };
-
 describe("a Tap", () => {
   it("on a Hidden Cell Reveals it when the finger lifts, at the time of the lift", () => {
     const touched = applyAll(START, [fingerDown(clueOf1, { now: 1_000 })]);
@@ -144,16 +172,6 @@ describe("a Tap", () => {
     expect(elapsedSeconds(tapped.game, 3_250)).toBe(2);
   });
 });
-
-/** The finger still on the Board at `now`: the moment a Touch may become a Long Touch. */
-const stillHeld = (options: TouchOptions = {}) => touchEvent({ type: "held" }, options);
-
-/** A finger held on `cell` from `now` until it becomes a Long Touch, and lifted. */
-const longTouch = (cell: Coord, { now = 0, ...options }: TouchOptions = {}) => [
-  fingerDown(cell, { now, ...options }),
-  stillHeld({ now: now + 400, ...options }),
-  fingerUp({ now: now + 500, ...options }),
-];
 
 describe("a Long Touch", () => {
   const cell = { row: 0, col: 2 };
@@ -184,18 +202,32 @@ describe("a Long Touch", () => {
   });
 
   it.each([
-    [true, ["flag", "question", "hidden"]],
-    [false, ["flag", "hidden", "flag"]],
+    [
+      true,
+      [
+        ["flag", 1],
+        ["question", 2],
+        ["hidden", 2],
+      ],
+    ],
+    [
+      false,
+      [
+        ["flag", 1],
+        ["hidden", 2],
+        ["flag", 1],
+      ],
+    ],
   ] as const)(
     "with Marks (?) %s cycles the marker as the right button does, and the mine counter follows",
-    (questionsEnabled, kinds) => {
+    (questionsEnabled, expected) => {
       let state = START;
       const seen: [string, number][] = [];
       for (let i = 0; i < 3; i++) {
         state = applyAll(state, longTouch(cell, { now: i * 1_000, questionsEnabled }));
         seen.push([cellView(state.game, cell).kind, mineCounter(state.game)]);
       }
-      expect(seen).toEqual(kinds.map((kind) => [kind, kind === "flag" ? 1 : 2]));
+      expect(seen).toEqual(expected);
     },
   );
 
@@ -209,14 +241,17 @@ describe("a Long Touch", () => {
   });
 });
 
-/** Draws which Cells look pressed in: "o" for pressed in, "." otherwise. */
-function pressedIn(state: BoardState): string[] {
-  return Array.from({ length: WIDE_5x3.height }, (_, row) =>
-    Array.from({ length: WIDE_5x3.width }, (_, col) =>
-      looksPressedIn(state, { row, col }) ? "o" : ".",
-    ).join(""),
-  );
-}
+describe("what the Board shows during a Press", () => {
+  it("pushes in the Cell under the left button, with a Press under way until it is released", () => {
+    const pressed = applyAll(START, [mouse("down", "left", { row: 1, col: 2 })]);
+    expect(pressedIn(pressed)).toEqual([".....", "..o..", "....."]);
+    expect(isPressOrTouchUnderWay(pressed)).toBe(true);
+
+    const released = applyBoardEvent(pressed, mouse("up", "left", undefined));
+    expect(pressedIn(released)).toEqual([".....", ".....", "....."]);
+    expect(isPressOrTouchUnderWay(released)).toBe(false);
+  });
+});
 
 describe("what the Board shows during a Touch", () => {
   const middle = { row: 1, col: 2 };
@@ -243,6 +278,7 @@ describe("what the Board shows during a Touch", () => {
         cycleMarker(questioned),
       ]),
       press: undefined,
+      touch: undefined,
     };
 
     expect(pressedIn(applyAll(playing, [fingerDown(revealed)]))).toEqual([
@@ -271,13 +307,6 @@ describe("what the Board shows during a Touch", () => {
     expect(isPressOrTouchUnderWay(applyBoardEvent(flagged, fingerUp({ now: 500 })))).toBe(false);
   });
 });
-
-const fingerMove = (at: Point, options: TouchOptions = {}) =>
-  touchEvent({ type: "move", pointer: options.pointer ?? 1, at }, options);
-
-/** The browser taking the finger over, to scroll or zoom the page. */
-const browserCancels = (options: TouchOptions = {}) =>
-  touchEvent({ type: "cancel", pointer: options.pointer ?? 1 }, options);
 
 describe("a Touch is cancelled with no action", () => {
   const cell = { row: 1, col: 2 };
@@ -313,6 +342,14 @@ describe("a Touch is cancelled with no action", () => {
     expect(lifted.game).toBe(READY);
   });
 
+  it("by a second finger going down on the Board's border, where a first finger starts no Touch", () => {
+    const pinched = applyAll(START, [fingerDown(cell), fingerDownOnTheBorder({ pointer: 2 })]);
+    expect(isPressOrTouchUnderWay(pinched)).toBe(false);
+    expect(applyAll(pinched, [fingerUp({ now: 100 })]).game).toBe(READY);
+
+    expect(isPressOrTouchUnderWay(applyAll(START, [fingerDownOnTheBorder()]))).toBe(false);
+  });
+
   it("keeping a marker a Long Touch has already put", () => {
     const flagged = applyAll(START, [fingerDown(cell), stillHeld({ now: 400 })]);
     for (const end of [fingerMove({ x: 130, y: 100 }), browserCancels()]) {
@@ -344,13 +381,18 @@ describe("once the Game is over", () => {
   const bottomMine = { row: 2, col: 4 };
   const isMine = (cell: Coord) =>
     [topMine, bottomMine].some((mine) => mine.row === cell.row && mine.col === cell.col);
-  const lost: BoardState = { game: revealOrMark(READY, [reveal(topMine)]), press: undefined };
+  const lost: BoardState = {
+    game: revealOrMark(READY, [reveal(topMine)]),
+    press: undefined,
+    touch: undefined,
+  };
   const won: BoardState = {
     game: revealAll(
       READY,
       cellsOf(WIDE_5x3).filter((cell) => !isMine(cell)),
     ),
     press: undefined,
+    touch: undefined,
   };
 
   it.each([
@@ -366,7 +408,11 @@ describe("once the Game is over", () => {
 
 describe("a Touch on a Revealed Cell", () => {
   it("does nothing yet, whether a Tap or held past 400 ms", () => {
-    const playing: BoardState = { game: revealOrMark(READY, [reveal(clueOf1)]), press: undefined };
+    const playing: BoardState = {
+      game: revealOrMark(READY, [reveal(clueOf1)]),
+      press: undefined,
+      touch: undefined,
+    };
     const before = picture(playing.game);
 
     const tapped = applyAll(playing, [fingerDown(clueOf1), fingerUp({ now: 100 })]);

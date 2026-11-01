@@ -33,6 +33,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   const [board, dispatch] = useReducer(applyBoardEvent, undefined, (): BoardState => ({
     game: newGame(initialDifficulty, { random: Math.random, layout: initialLayout }),
     press: undefined,
+    touch: undefined,
   }));
   const { game } = board;
   const status = statusOf(game);

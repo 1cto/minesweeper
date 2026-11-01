@@ -16,7 +16,7 @@ import {
 } from "./touch";
 
 /** The Game being played and the Press or Touch under way on its Board, if any. */
-export type BoardState = { readonly game: Game; readonly press: Press; readonly touch?: Touch };
+export type BoardState = { readonly game: Game; readonly press: Press; readonly touch: Touch };
 
 export type BoardEvent =
   | {
@@ -43,7 +43,7 @@ type InputBoardEvent = Exclude<BoardEvent, { type: "newGame" }>;
  * ends any Press or Touch.
  */
 export function applyBoardEvent(state: BoardState, event: BoardEvent): BoardState {
-  if (event.type === "newGame") return { game: event.game, press: undefined };
+  if (event.type === "newGame") return { game: event.game, press: undefined, touch: undefined };
   const starts = event.input.type === "down";
   if (event.type === "touch") {
     if (starts && pressUnderWay(state.press)) return state;

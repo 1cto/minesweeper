@@ -6,10 +6,11 @@ export type Point = { readonly x: number; readonly y: number };
 
 /**
  * What a finger or a stylus does on the Board. `pointer` is the browser's id for it, so the lift
- * of one finger is never taken for another's.
+ * of one finger is never taken for another's; a missing `cell` means a finger went down on the
+ * Board's border, between no Cells.
  */
 export type TouchInput =
-  | { readonly type: "down"; readonly pointer: number; readonly cell: Coord; readonly at: Point }
+  | { readonly type: "down"; readonly pointer: number; readonly cell?: Coord; readonly at: Point }
   | { readonly type: "move"; readonly pointer: number; readonly at: Point }
   | { readonly type: "up"; readonly pointer: number }
   | { readonly type: "cancel"; readonly pointer: number }
@@ -45,9 +46,10 @@ const seal = (held: Held | undefined) => held as unknown as Touch;
  * finger has been held for `LONG_TOUCH_MS`, the Touch becomes a Long Touch and cycles the marker
  * at once, as the right button does; lifting the finger before that Reveals the Cell the Touch
  * began on, and after it asks for nothing more. The finger wandering more than `TOUCH_SLOP_PX`,
- * the browser taking it over, or a second finger going down ends the Touch with no action; a
- * marker already cycled stays. Only the Touch's own finger moves, lifts or cancels it, and no
- * Touch starts in a finished Game. An input that changes nothing returns the same Touch.
+ * the browser taking it over, or a second finger going down anywhere on the Board ends the Touch
+ * with no action; a marker already cycled stays. Only the Touch's own finger moves, lifts or
+ * cancels it, and a Touch starts only on a Cell of an unfinished Game. An input that changes
+ * nothing returns the same Touch.
  */
 export function applyTouch(
   touch: Touch,
@@ -60,8 +62,8 @@ export function applyTouch(
     if (held) return { touch: undefined };
     // A finished Game ignores every action, so no Touch starts there either.
     const status = statusOf(game);
-    if (status === "won" || status === "lost") return { touch };
     const { pointer, cell, at } = input;
+    if (!cell || status === "won" || status === "lost") return { touch };
     return { touch: seal({ pointer, cell, origin: at, since: now, long: false }) };
   }
   if (!held || ("pointer" in input && input.pointer !== held.pointer)) return { touch };
