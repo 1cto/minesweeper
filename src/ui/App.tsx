@@ -1,7 +1,6 @@
 import { useReducer, useState } from "react";
 import {
   difficultyOf,
-  elapsedSeconds,
   mineCounter,
   newGame,
   statusOf,
@@ -18,7 +17,6 @@ import { isUnderWay, type MouseInput } from "./press";
 import { StatusPanel, type Face } from "./StatusPanel";
 import { loadQuestionsEnabled, saveDifficulty, saveQuestionsEnabled } from "./storage";
 import { useBestTimes } from "./useBestTimes";
-import { useClock } from "./useClock";
 import { Window } from "./Window";
 
 const FACE: Record<GameStatus, Face> = {
@@ -39,7 +37,6 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   const status = statusOf(game);
   // A Press never starts in a finished Game, so the surprised face never hides a Win or a Loss.
   const face: Face = isUnderWay(press) ? "surprised" : FACE[status];
-  const now = useClock(status === "playing");
   const { bestTimes, recordName, resetScores } = useBestTimes(game);
   const newBestTime = waitingForName(bestTimes);
 
@@ -69,12 +66,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
         onResetScores={resetScores}
       />
       <div className="game" data-testid="game">
-        <StatusPanel
-          mines={mineCounter(game)}
-          seconds={elapsedSeconds(game, now)}
-          face={face}
-          onNewGame={startNewGame}
-        />
+        <StatusPanel mines={mineCounter(game)} game={game} face={face} onNewGame={startNewGame} />
         <Board game={game} press={press} onMouse={onMouse} />
       </div>
       {newBestTime && (

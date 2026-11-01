@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
+import { elapsedSeconds, statusOf, type Game } from "../engine/game";
 import { LED_DIGITS, LED_MINUS, SMILEY_SPRITES } from "./sprites";
+import { useClock } from "./useClock";
 
 /** Three counter characters: "-07" for negatives down to -99, "042" otherwise up to 999. */
 function ledText(value: number): string {
@@ -22,17 +24,24 @@ function LedCounter({ label, value, testId }: { label: string; value: number; te
   );
 }
 
+/** The timer keeps its own clock, so a tick re-renders the timer alone. */
+function Timer({ game }: { game: Game }) {
+  const now = useClock(statusOf(game) === "playing");
+  return <LedCounter label="Timer" value={elapsedSeconds(game, now)} testId="timer" />;
+}
+
 /** The smiley's expression. */
 export type Face = "normal" | "surprised" | "cool" | "dead";
 
 type StatusPanelProps = {
   mines: number;
-  seconds: number;
+  /** The Game whose time the timer shows. */
+  game: Game;
   face: Face;
   onNewGame: () => void;
 };
 
-export function StatusPanel({ mines, seconds, face, onNewGame }: StatusPanelProps) {
+export function StatusPanel({ mines, game, face, onNewGame }: StatusPanelProps) {
   const smileyStyle = {
     "--sprite": SMILEY_SPRITES[face],
     "--sprite-pressed": SMILEY_SPRITES.pressed,
@@ -49,7 +58,7 @@ export function StatusPanel({ mines, seconds, face, onNewGame }: StatusPanelProp
         data-face={face}
         onClick={onNewGame}
       />
-      <LedCounter label="Timer" value={seconds} testId="timer" />
+      <Timer game={game} />
     </div>
   );
 }

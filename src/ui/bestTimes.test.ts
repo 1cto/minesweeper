@@ -193,6 +193,17 @@ describe("storage", () => {
     expect(bestTimeOf(bestTimes, BEGINNER)).toEqual({ seconds: 999, name: "Anonymous" });
   });
 
+  it.each([0, 999])(
+    "reads a stored Best Time of %i seconds, which the timer can show",
+    (seconds) => {
+      const stored = JSON.stringify({ Beginner: { seconds, name: "Ada" } });
+
+      const bestTimes = loadBestTimes(memoryStorage({ "minesweeper.bestTimes": stored }));
+
+      expect(bestTimeOf(bestTimes, BEGINNER)).toEqual({ seconds, name: "Ada" });
+    },
+  );
+
   it("keeps the readable Best Times when others are broken or belong to no Difficulty", () => {
     const stored = JSON.stringify({
       Beginner: { seconds: 7.5, name: "Ada" },
