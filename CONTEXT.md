@@ -61,7 +61,7 @@ The player holding mouse buttons down on the Board, from the first button going 
 _Avoid_: Gesture, Hold, Click
 
 **Touch**:
-The player holding one finger on the Board, from touching a Cell until lifting the finger; it acts only on the Cell it began on, and while it lasts, the Cells it would act on look pressed in.
+The player holding one finger or a stylus on the Board, from touching a Cell until lifting it; it acts only on the Cell it began on, and while it lasts, the Cells it would act on look pressed in.
 _Avoid_: Press, Gesture
 
 **Tap**:
