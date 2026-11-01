@@ -200,12 +200,18 @@ export function statusOf(game: Game): GameStatus {
   return open(game).status;
 }
 
-/** Whole seconds on the timer at `now`, capped at 999 like the three-digit display. */
+/** The timer's maximum in seconds, as in the original: it stays there however long a Game lasts. */
+export const MAX_TIMER_SECONDS = 999;
+
+/**
+ * Whole seconds on the timer at `now`, for any `now`: 0 before the first Reveal, even on a clock
+ * read earlier or set back, and never past the timer's maximum.
+ */
 export function elapsedSeconds(game: Game, now: number): number {
   const { startedAt, endedAt } = open(game);
   if (startedAt === undefined) return 0;
   const seconds = Math.floor(((endedAt ?? now) - startedAt) / 1000);
-  return Math.min(Math.max(seconds, 0), 999);
+  return Math.min(Math.max(seconds, 0), MAX_TIMER_SECONDS);
 }
 
 /** The seconds on which a lost or won Game's timer stopped, or none while the Game goes on. */

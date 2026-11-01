@@ -2,6 +2,7 @@ import {
   DIFFICULTIES,
   difficultyOf,
   finalSeconds,
+  MAX_TIMER_SECONDS,
   statusOf,
   type Difficulty,
   type Game,
@@ -20,7 +21,7 @@ export type BestTime = { readonly seconds: number; readonly name: string };
 export type NewBestTime = { readonly difficulty: Difficulty; readonly seconds: number };
 
 /** Every Difficulty's Best Time until a faster Win, and again after Reset Scores. */
-const STARTING_BEST_TIME: BestTime = { seconds: 999, name: ANONYMOUS };
+const STARTING_BEST_TIME: BestTime = { seconds: MAX_TIMER_SECONDS, name: ANONYMOUS };
 
 declare const sealed: unique symbol;
 /** Each Difficulty's Best Time and what goes with them. Only this module looks inside. */
@@ -122,6 +123,6 @@ function asBestTime(value: unknown): BestTime | undefined {
   if (typeof value !== "object" || value === null) return undefined;
   const { seconds, name } = value as Readonly<Record<string, unknown>>;
   if (typeof seconds !== "number" || typeof name !== "string") return undefined;
-  const onTheTimer = Number.isInteger(seconds) && seconds >= 0 && seconds <= 999;
+  const onTheTimer = Number.isInteger(seconds) && seconds >= 0 && seconds <= MAX_TIMER_SECONDS;
   return onTheTimer ? { seconds, name } : undefined;
 }
