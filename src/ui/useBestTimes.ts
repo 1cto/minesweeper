@@ -1,47 +1,34 @@
 import { useState } from "react";
-import { elapsedSeconds, statusOf, type Difficulty, type Game } from "../engine/game";
-import { bestTimeOf, loadBestTimes, loadLastName, saveBestTimes, saveLastName } from "./storage";
-
-/** A Win in strictly fewer seconds than its Difficulty's Best Time, waiting for the player's name. */
-type NewBestTime = { readonly difficulty: Difficulty; readonly seconds: number };
+import type { Game } from "../engine/game";
+import {
+  considerGame,
+  loadBestTimes,
+  recordName,
+  resetScores,
+  saveBestTimes,
+  type BestTimes,
+} from "./bestTimes";
+import { browserStorage } from "./storage";
 
 /**
- * The Best Times and the last name entered, held in memory and kept in storage, so a failing
- * storage only costs remembering them after a reload. Each Game is compared with the Best Times
- * once, when it is won, using the seconds its timer stopped at; a later Reset Scores never makes
- * a Game won earlier ask for a name.
+ * The Best Times, held in memory and kept in browser storage, so a failing storage only costs
+ * remembering them after a reload. Every Game shown is handed to them, so a Win faster than its
+ * Difficulty's Best Time waits for the player's name.
  */
-export function useBestTimes(game: Game, now: number) {
-  const [bestTimes, setBestTimes] = useState(loadBestTimes);
-  const [lastName, setLastName] = useState(loadLastName);
-  const [newBestTime, setNewBestTime] = useState<NewBestTime>();
-  const [lastWin, setLastWin] = useState<Game>();
+export function useBestTimes(game: Game) {
+  const [held, setHeld] = useState(() => loadBestTimes(browserStorage));
+  const bestTimes = considerGame(held, game);
+  if (bestTimes !== held) setHeld(bestTimes);
 
-  if (statusOf(game) === "won" && game !== lastWin) {
-    setLastWin(game);
-    const seconds = elapsedSeconds(game, now);
-    if (seconds < bestTimeOf(bestTimes, game.difficulty).seconds) {
-      setNewBestTime({ difficulty: game.difficulty, seconds });
-    }
-  }
-
-  /** Records the pending new Best Time under `name`. */
-  const recordName = (name: string) => {
-    if (!newBestTime) return;
-    const { difficulty, seconds } = newBestTime;
-    const updated = { ...bestTimes, [difficulty.name]: { seconds, name } };
-    setBestTimes(updated);
-    saveBestTimes(updated);
-    setLastName(name);
-    saveLastName(name);
-    setNewBestTime(undefined);
+  /** Keeps a change the player made for later visits. */
+  const change = (next: BestTimes) => {
+    setHeld(next);
+    saveBestTimes(browserStorage, next);
   };
 
-  /** Clears the Best Time of every Difficulty. */
-  const resetScores = () => {
-    setBestTimes({});
-    saveBestTimes({});
+  return {
+    bestTimes,
+    recordName: (name: string) => change(recordName(bestTimes, name)),
+    resetScores: () => change(resetScores(bestTimes)),
   };
-
-  return { bestTimes, lastName, newBestTime, recordName, resetScores };
 }

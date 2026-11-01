@@ -79,5 +79,5 @@ One of three presets fixing the Board size and Mine count: Beginner (9×9, 10 Mi
 _Avoid_: Level, Mode
 
 **Best Time**:
-The fastest Win on a given Difficulty, in seconds, together with the name of the player who set it.
+The time in seconds, with its holder's name, that a Win on a given Difficulty must beat to replace it; every Difficulty starts with 999 seconds held by Anonymous, and Reset Scores restores that.
 _Avoid_: Record, High score

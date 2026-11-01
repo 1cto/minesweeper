@@ -1,6 +1,6 @@
 import { DIFFICULTIES } from "../engine/game";
 import { Dialog } from "./Dialog";
-import { bestTimeOf, type BestTimes } from "./storage";
+import { bestTimeOf, type BestTimes } from "./bestTimes";
 
 type BestTimesDialogProps = {
   bestTimes: BestTimes;

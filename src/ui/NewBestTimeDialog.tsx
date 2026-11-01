@@ -1,20 +1,13 @@
 import { useState } from "react";
 import type { Difficulty } from "../engine/game";
 import { Dialog } from "./Dialog";
-import { ANONYMOUS } from "./storage";
-
-/** Short enough to fit in the Best Times dialog. */
-const MAX_NAME_LENGTH = 32;
-
-/** The name as recorded: trimmed and capped at 32 characters, with "Anonymous" for no name. */
-function recordedName(input: string): string {
-  return input.trim().slice(0, MAX_NAME_LENGTH) || ANONYMOUS;
-}
+import { MAX_NAME_LENGTH } from "./bestTimes";
 
 type NewBestTimeDialogProps = {
   difficulty: Difficulty;
   /** The name the field starts with. */
   initialName: string;
+  /** Receives the name as the player entered it. */
   onOk: (name: string) => void;
 };
 
@@ -24,7 +17,7 @@ type NewBestTimeDialogProps = {
  */
 export function NewBestTimeDialog({ difficulty, initialName, onOk }: NewBestTimeDialogProps) {
   const [name, setName] = useState(initialName);
-  const ok = () => onOk(recordedName(name));
+  const ok = () => onOk(name);
   return (
     <Dialog title="New Best Time" onClose={ok}>
       <form

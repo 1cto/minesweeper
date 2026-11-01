@@ -186,6 +186,11 @@ export function elapsedSeconds(game: Game, now: number): number {
   return Math.min(Math.max(seconds, 0), 999);
 }
 
+/** The seconds on which a lost or won Game's timer stopped, or none while the Game goes on. */
+export function finalSeconds(game: Game): number | undefined {
+  return game.endedAt === undefined ? undefined : elapsedSeconds(game, game.endedAt);
+}
+
 export function cellView(game: Game, cell: Coord): CellView {
   const index = indexOf(game.difficulty, cell);
   if (game.exploded?.has(index)) return { kind: "exploded" };
