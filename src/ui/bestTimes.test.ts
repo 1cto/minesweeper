@@ -27,9 +27,10 @@ import { memoryStorage } from "./storage";
  */
 function wonIn(seconds: number, difficulty: Difficulty = BEGINNER): Game {
   const game = newGame(difficulty, { random: unusedRandom, layout: [{ row: 0, col: 0 }] });
+  // The Timer shows 1 from the first Reveal, so the Win comes `seconds - 1` seconds after it.
   return revealOrMark(game, [
     reveal({ row: 1, col: 1 }, 0),
-    reveal({ row: difficulty.height - 1, col: difficulty.width - 1 }, seconds * 1_000),
+    reveal({ row: difficulty.height - 1, col: difficulty.width - 1 }, (seconds - 1) * 1_000),
   ]);
 }
 
@@ -51,6 +52,15 @@ describe("a Win", () => {
 
   it("whose timer stopped at 999 seconds does not beat a starting Best Time", () => {
     expect(waitingForName(considerGame(firstVisit(), wonIn(1_200)))).toBeUndefined();
+  });
+
+  it("on the first Reveal sets a Best Time of 1 second", () => {
+    const game = newGame(BEGINNER, { random: unusedRandom, layout: [{ row: 0, col: 0 }] });
+    const won = revealOrMark(game, [reveal({ row: 8, col: 8 }, 0)]);
+
+    const recorded = recordName(considerGame(firstVisit(), won), "Ada");
+
+    expect(bestTimeOf(recorded, BEGINNER)).toEqual({ seconds: 1, name: "Ada" });
   });
 });
 

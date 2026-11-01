@@ -32,7 +32,7 @@ describe("a mouse event on the Board", () => {
     ]);
 
     expect(cellView(state.game, clueOf1)).toEqual({ kind: "revealed", clue: 1 });
-    expect(elapsedSeconds(state.game, 8_000)).toBe(3);
+    expect(elapsedSeconds(state.game, 8_000)).toBe(4);
   });
 
   it.each([

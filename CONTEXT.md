@@ -82,6 +82,10 @@ _Avoid_: Defeat, Game over
 One of three presets fixing the Board size and Mine count: Beginner (9×9, 10 Mines), Intermediate (16×16, 40 Mines), Expert (30×16, 99 Mines).
 _Avoid_: Level, Mode
 
+**Timer**:
+The three-digit count of a Game's seconds: 1 from the first Reveal, one more for each whole second after it, stopping when the Game ends or at 999.
+_Avoid_: Clock, Stopwatch
+
 **Best Time**:
 The time in seconds, with its holder's name, that a Win on a given Difficulty must beat to replace it; every Difficulty starts with 999 seconds held by Anonymous, and Reset Scores restores that.
 _Avoid_: Record, High score

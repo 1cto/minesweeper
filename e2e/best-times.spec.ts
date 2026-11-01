@@ -18,7 +18,8 @@ function oneMineInTheCorner(width: number, height: number) {
 async function winIn(page: Page, seconds: number) {
   // (1, 1) touches the Mine, so its Reveal starts the timer and the Game goes on.
   await cell(page, 1, 1).click();
-  await page.clock.fastForward(seconds * 1_000);
+  // The Timer shows 1 from that Reveal, so the Win comes `seconds - 1` seconds after it.
+  await page.clock.fastForward((seconds - 1) * 1_000);
   // The bottom-right Cell is far from the Mine, so its Cascade Reveals every other Cell.
   await page.locator("[data-testid^='cell-']").last().click();
   await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
