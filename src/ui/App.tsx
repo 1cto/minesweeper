@@ -9,12 +9,13 @@ import {
 } from "../engine/game";
 import { Board } from "./Board";
 import { offeredName, waitingForName } from "./bestTimes";
-import { applyBoardEvent } from "./boardState";
+import { applyBoardEvent, isPressOrTouchUnderWay, type BoardState } from "./boardState";
 import { GameMenuBar } from "./GameMenuBar";
 import { NewBestTimeDialog } from "./NewBestTimeDialog";
-import { isUnderWay, type MouseInput } from "./press";
+import type { MouseInput } from "./press";
 import { StatusPanel, type Face } from "./StatusPanel";
 import { loadQuestionsEnabled, saveDifficulty, saveQuestionsEnabled } from "./storage";
+import type { TouchInput } from "./touch";
 import { useBestTimes } from "./useBestTimes";
 import { Window } from "./Window";
 
@@ -29,18 +30,22 @@ type AppProps = { initialDifficulty: Difficulty; initialLayout?: Layout };
 
 export function App({ initialDifficulty, initialLayout }: AppProps) {
   const [questionsEnabled, setQuestionsEnabled] = useState(loadQuestionsEnabled);
-  const [{ game, press }, dispatch] = useReducer(applyBoardEvent, undefined, () => ({
+  const [board, dispatch] = useReducer(applyBoardEvent, undefined, (): BoardState => ({
     game: newGame(initialDifficulty, { random: Math.random, layout: initialLayout }),
     press: undefined,
   }));
+  const { game } = board;
   const status = statusOf(game);
-  // A Press never starts in a finished Game, so the surprised face never hides a Win or a Loss.
-  const face: Face = isUnderWay(press) ? "surprised" : FACE[status];
+  // Neither a Press nor a Touch starts in a finished Game, so the surprised face never hides a Win
+  // or a Loss.
+  const face: Face = isPressOrTouchUnderWay(board) ? "surprised" : FACE[status];
   const { bestTimes, recordName, resetScores } = useBestTimes(game);
   const newBestTime = waitingForName(bestTimes);
 
   const onMouse = (input: MouseInput) =>
     dispatch({ type: "mouse", input, now: Date.now(), questionsEnabled });
+  const onTouch = (input: TouchInput) =>
+    dispatch({ type: "touch", input, now: Date.now(), questionsEnabled });
   const startGame = (difficulty: Difficulty) =>
     dispatch({ type: "newGame", game: newGame(difficulty, { random: Math.random }) });
   const startNewGame = () => startGame(difficultyOf(game));
@@ -66,7 +71,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
       />
       <div className="game" data-testid="game">
         <StatusPanel game={game} face={face} onNewGame={startNewGame} />
-        <Board game={game} press={press} onMouse={onMouse} />
+        <Board board={board} onMouse={onMouse} onTouch={onTouch} />
       </div>
       {newBestTime && (
         <NewBestTimeDialog
