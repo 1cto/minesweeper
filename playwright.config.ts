@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// E2E_PORT lets several checkouts run browser tests side by side.
+// E2E_PORT lets several runs test side by side, even in one checkout: each port builds into its own
+// directory, so one run's build never empties the files another run is serving.
 const port = Number(process.env.E2E_PORT ?? 4173);
+const outDir = `dist-e2e/${port}`;
 
 export default defineConfig({
   testDir: "e2e",
@@ -23,7 +25,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm build:e2e && pnpm preview --outDir dist-e2e --port ${port} --strictPort`,
+    command: `pnpm exec vite build --mode e2e --outDir ${outDir} && pnpm exec vite preview --outDir ${outDir} --port ${port} --strictPort`,
     port,
     reuseExistingServer: !process.env.CI,
   },
