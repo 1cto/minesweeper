@@ -97,6 +97,109 @@ for (const { difficulty, viewport, size } of TOO_SMALL) {
   });
 }
 
+test.describe("at a device pixel ratio of 2, as on every iPad", () => {
+  test.use({ deviceScaleFactor: 2 });
+
+  // ×1.5 and ×2.5 draw each pixel as 3 and 5 screen pixels, so they join ×1, ×2 and ×3. The
+  // Cells, 16 pixels at ×1, are measured rather than the whole window: the browser may round a
+  // zoomed border to whole CSS pixels, which leaves the window a pixel or two short.
+  // Intermediate is 286×368 at ×1, so ×2.5 fits 820 pixels across and ×3 does not.
+  const RETINA_SCALES: {
+    difficulty: Difficulty;
+    viewport: Viewport;
+    scale: string;
+    cell: string;
+  }[] = [
+    { difficulty: "Expert", viewport: { width: 820, height: 1180 }, scale: "1.5", cell: "24×24" },
+    {
+      difficulty: "Intermediate",
+      viewport: { width: 820, height: 1180 },
+      scale: "2.5",
+      cell: "40×40",
+    },
+    { difficulty: "Expert", viewport: { width: 1180, height: 820 }, scale: "2", cell: "32×32" },
+    { difficulty: "Beginner", viewport: { width: 820, height: 1180 }, scale: "3", cell: "48×48" },
+  ];
+
+  for (const { difficulty, viewport, scale, cell: cellSize } of RETINA_SCALES) {
+    test(`${difficulty} in a ${named(viewport)} viewport is drawn at ×${scale}`, async ({
+      page,
+    }) => {
+      await openIn(page, viewport, difficulty);
+
+      await expect(theWindow(page)).toHaveAttribute("data-scale", scale);
+      const { width, height } = await boxOf(cell(page, 0, 0));
+      expect(`${width}×${height}`).toBe(cellSize);
+    });
+  }
+
+  const CENTRED: { difficulty: Difficulty; viewport: Viewport; scale: string }[] = [
+    { difficulty: "Expert", viewport: { width: 820, height: 1180 }, scale: "1.5" },
+    { difficulty: "Expert", viewport: { width: 821, height: 1179 }, scale: "1.5" },
+    { difficulty: "Intermediate", viewport: { width: 819, height: 1181 }, scale: "2.5" },
+  ];
+
+  for (const { difficulty, viewport, scale } of CENTRED) {
+    test(`${difficulty} at ×${scale} in a ${named(viewport)} viewport sits on whole screen pixels, its Cells too`, async ({
+      page,
+    }) => {
+      await openIn(page, viewport, difficulty);
+      await expect(theWindow(page)).toHaveAttribute("data-scale", scale);
+
+      // Every edge that falls between two screen pixels, as "x,y" of a box's top-left corner.
+      const offGrid = await page.evaluate(() =>
+        [...document.querySelectorAll("[data-testid=window], .cell")].flatMap((element) => {
+          const { left, top } = element.getBoundingClientRect();
+          const whole = (n: number) => Number.isInteger(n * devicePixelRatio);
+          return whole(left) && whole(top) ? [] : [`${left},${top}`];
+        }),
+      );
+      expect(offGrid).toEqual([]);
+    });
+  }
+
+  test("turning the tablet recomputes the scale", async ({ page }) => {
+    await openIn(page, { width: 820, height: 1180 }, "Expert");
+    await expect(theWindow(page)).toHaveAttribute("data-scale", "1.5");
+
+    await page.setViewportSize({ width: 1180, height: 820 });
+    await expect(theWindow(page), "landscape").toHaveAttribute("data-scale", "2");
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await expect(theWindow(page), "portrait").toHaveAttribute("data-scale", "1.5");
+  });
+
+  test("at ×1.5 every graphic of the window is drawn crisp, each pixel 3 screen pixels across", async ({
+    page,
+  }) => {
+    // The Game is still playing when the screenshot is taken, so the timer must not move.
+    await page.clock.setFixedTime(new Date("2026-01-01T09:00:00"));
+    // Beginner is 261×384 at ×1.5: too wide for ×2 in 300 pixels.
+    await page.setViewportSize({ width: 300, height: 700 });
+    await openWithLayout(page, EVERY_CLUE);
+
+    for (const [row, col] of EVERY_CLUE_CENTRES) await cell(page, row, col).click();
+    await cell(page, 0, 0).click({ button: "right" });
+    await cell(page, 0, 1).click({ button: "right" });
+    await cell(page, 0, 1).click({ button: "right" });
+    await page.mouse.move(0, 0);
+
+    await expect(theWindow(page)).toHaveAttribute("data-scale", "1.5");
+    // The title and menu text are drawn with a system font, which differs between machines.
+    // Taken in screen pixels: shrunk to CSS pixels, a ×1.5 picture would be blurred by the shrinking.
+    await expect(theWindow(page)).toHaveScreenshot("window-x1.5.png", {
+      mask: [page.getByTestId("title-text"), page.getByTestId("menu-text")],
+      scale: "device",
+    });
+  });
+
+  test("Expert in a 400×300 viewport stays at ×1 and the page scrolls", async ({ page }) => {
+    await openIn(page, { width: 400, height: 300 }, "Expert");
+
+    await expect(theWindow(page)).toHaveAttribute("data-scale", "1");
+    expect(await pageSize(page)).toBe("510×368");
+  });
+});
+
 test("resizing the viewport recomputes the scale", async ({ page }) => {
   await openIn(page, { width: 1280, height: 500 });
   await expect(theWindow(page)).toHaveAttribute("data-scale", "1");
