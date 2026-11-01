@@ -37,7 +37,7 @@ export function GameMenuBar({
         ...DIFFICULTIES.map((choice) => ({
           kind: "radio" as const,
           label: choice.name,
-          checked: choice === difficulty,
+          checked: choice.name === difficulty.name,
           onSelect: () => onChooseDifficulty(choice),
         })),
         { kind: "separator" },

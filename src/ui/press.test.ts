@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newGame, type Coord, type Game } from "../engine/game";
+import { difficultyOf, newGame, type Coord, type Game } from "../engine/game";
 import {
   cellsOf,
   cycleMarker,
@@ -47,7 +47,7 @@ function feed(game: Game, inputs: MouseInput[]): { press: Press; intents: Intent
 
 /** Draws which Cells look pressed in: "o" for pressed in, "." otherwise. */
 function pressedIn(game: Game, press: Press): string[] {
-  const { width, height } = game.difficulty;
+  const { width, height } = difficultyOf(game);
   return Array.from({ length: height }, (_, row) =>
     Array.from({ length: width }, (_, col) =>
       looksPressedIn(press, game, { row, col }) ? "o" : ".",

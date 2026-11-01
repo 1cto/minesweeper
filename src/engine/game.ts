@@ -44,7 +44,12 @@ export type Action =
     }
   | { readonly type: "chord"; readonly cell: Coord; readonly now: number };
 
-export type Game = {
+declare const sealed: unique symbol;
+/** One attempt to clear one Board. Only this module looks inside it. */
+export type Game = { readonly [sealed]: true };
+
+/** What a Game holds. */
+type Held = {
   readonly difficulty: Difficulty;
   readonly random: RandomSource;
   readonly status: GameStatus;
@@ -60,42 +65,51 @@ export type Game = {
   readonly endedAt?: number;
 };
 
+const open = (game: Game) => game as unknown as Held;
+const seal = (held: Held) => held as unknown as Game;
+
 export function newGame(
   difficulty: Difficulty,
   options: { random: RandomSource; layout?: Layout },
 ): Game {
   const mines = options.layout && new Set(options.layout.map((cell) => indexOf(difficulty, cell)));
-  return {
+  return seal({
     difficulty,
     random: options.random,
     status: "ready",
     mines,
     revealed: new Set(),
     markers: new Map(),
-  };
+  });
 }
 
+/**
+ * The Game after `action`. A finished Game, won or lost, ignores every action and returns that very
+ * Game, so a caller can tell by identity that nothing changed. The promise ends there: during play,
+ * an action that changes nothing, such as a Reveal on a Revealed Cell, may still return a new Game.
+ */
 export function applyAction(game: Game, action: Action): Game {
-  if (game.status === "won" || game.status === "lost") return game;
-  return clocked(game, play(game, action), action.now);
+  const held = open(game);
+  if (held.status === "won" || held.status === "lost") return game;
+  return seal(clocked(held, play(held, action), action.now));
 }
 
 /** Starts the timer when an action takes the Game out of "ready" and stops it when the Game ends. */
-function clocked(before: Game, after: Game, now: number): Game {
+function clocked(before: Held, after: Held, now: number): Held {
   const starts = before.status === "ready" && after.status !== "ready";
   const ends = after.status === "won" || after.status === "lost";
   if (!starts && !ends) return after;
   return { ...after, startedAt: starts ? now : after.startedAt, endedAt: ends ? now : undefined };
 }
 
-function play(game: Game, action: Action): Game {
+function play(held: Held, action: Action): Held {
   switch (action.type) {
     case "reveal":
-      return reveal(game, action.cell);
+      return reveal(held, action.cell);
     case "cycleMarker":
-      return cycleMarker(game, action.cell, action.questionsEnabled);
+      return cycleMarker(held, action.cell, action.questionsEnabled);
     case "chord":
-      return chord(game, action.cell);
+      return chord(held, action.cell);
   }
 }
 
@@ -103,46 +117,46 @@ function play(game: Game, action: Action): Game {
  * On a Revealed Cell whose Clue equals its number of Flagged Neighbors, Reveals the other Hidden
  * Neighbors at once; on any other Cell it does nothing.
  */
-function chord(game: Game, cell: Coord): Game {
-  const { difficulty, mines } = game;
-  if (!mines || !game.revealed.has(indexOf(difficulty, cell))) return game;
+function chord(held: Held, cell: Coord): Held {
+  const { difficulty, mines } = held;
+  if (!mines || !held.revealed.has(indexOf(difficulty, cell))) return held;
   const neighbors = neighborsOf(difficulty, cell);
-  const flagged = (neighbor: Coord) => game.markers.get(indexOf(difficulty, neighbor)) === "flag";
-  if (neighbors.filter(flagged).length !== clueAt(difficulty, mines, cell)) return game;
+  const flagged = (neighbor: Coord) => held.markers.get(indexOf(difficulty, neighbor)) === "flag";
+  if (neighbors.filter(flagged).length !== clueAt(difficulty, mines, cell)) return held;
   const others = neighbors.filter((neighbor) => !flagged(neighbor));
-  return uncover(game, mines, others);
+  return uncover(held, mines, others);
 }
 
 /** Unmarked → Flag → Question → unmarked; without Questions, unmarked ↔ Flag. */
-function cycleMarker(game: Game, cell: Coord, questionsEnabled: boolean): Game {
-  const index = indexOf(game.difficulty, cell);
-  if (game.revealed.has(index)) return game;
-  const markers = new Map(game.markers);
+function cycleMarker(held: Held, cell: Coord, questionsEnabled: boolean): Held {
+  const index = indexOf(held.difficulty, cell);
+  if (held.revealed.has(index)) return held;
+  const markers = new Map(held.markers);
   const current = markers.get(index);
   if (current === undefined) markers.set(index, "flag");
   else if (current === "flag" && questionsEnabled) markers.set(index, "question");
   else markers.delete(index);
-  return { ...game, markers };
+  return { ...held, markers };
 }
 
-function reveal(game: Game, cell: Coord): Game {
-  const target = indexOf(game.difficulty, cell);
-  if (game.markers.get(target) === "flag") return game;
-  const mines = game.mines ?? placeMines(game.difficulty, target, game.random);
-  return uncover(game, mines, [cell]);
+function reveal(held: Held, cell: Coord): Held {
+  const target = indexOf(held.difficulty, cell);
+  if (held.markers.get(target) === "flag") return held;
+  const mines = held.mines ?? placeMines(held.difficulty, target, held.random);
+  return uncover(held, mines, [cell]);
 }
 
 /**
  * Reveals `cells`, which must not be Flagged, with Cascades. Revealing a Mine is a Loss, but the
  * Cells without a Mine are Revealed all the same.
  */
-function uncover(game: Game, mines: ReadonlySet<number>, cells: Coord[]): Game {
-  const { difficulty } = game;
+function uncover(held: Held, mines: ReadonlySet<number>, cells: Coord[]): Held {
+  const { difficulty } = held;
   const exploded = new Set(
     cells.map((cell) => indexOf(difficulty, cell)).filter((index) => mines.has(index)),
   );
-  const revealed = new Set(game.revealed);
-  const markers = new Map(game.markers);
+  const revealed = new Set(held.revealed);
+  const markers = new Map(held.markers);
   const pending = cells.filter((cell) => !mines.has(indexOf(difficulty, cell)));
   for (let next = pending.pop(); next; next = pending.pop()) {
     const index = indexOf(difficulty, next);
@@ -151,55 +165,65 @@ function uncover(game: Game, mines: ReadonlySet<number>, cells: Coord[]): Game {
     markers.delete(index);
     if (clueAt(difficulty, mines, next) === 0) pending.push(...neighborsOf(difficulty, next));
   }
-  if (exploded.size > 0) return { ...game, mines, status: "lost", exploded, revealed, markers };
+  if (exploded.size > 0) return { ...held, mines, status: "lost", exploded, revealed, markers };
   const won = revealed.size === difficulty.width * difficulty.height - mines.size;
   // On a Win every Mine gets a Flag, replacing any Question, so the mine counter reads 0.
   if (won) for (const mine of mines) markers.set(mine, "flag");
-  return { ...game, mines, status: won ? "won" : "playing", revealed, markers };
+  return { ...held, mines, status: won ? "won" : "playing", revealed, markers };
 }
 
 export function layoutOf(game: Game): Layout | undefined {
-  if (!game.mines) return undefined;
-  const { width } = game.difficulty;
-  return [...game.mines].map((index) => ({ row: Math.floor(index / width), col: index % width }));
+  const { difficulty, mines } = open(game);
+  if (!mines) return undefined;
+  const { width } = difficulty;
+  return [...mines].map((index) => ({ row: Math.floor(index / width), col: index % width }));
 }
 
 /** The number of Mines in the Game: the Difficulty's, or an explicit Layout's. */
-export function mineCount(game: Game): number {
-  return game.mines?.size ?? game.difficulty.mines;
+function mineCount(held: Held): number {
+  return held.mines?.size ?? held.difficulty.mines;
 }
 
 /** The Mine count minus the number of Flags; negative when the player over-flags. */
 export function mineCounter(game: Game): number {
-  const flags = [...game.markers.values()].filter((marker) => marker === "flag").length;
-  return mineCount(game) - flags;
+  const held = open(game);
+  const flags = [...held.markers.values()].filter((marker) => marker === "flag").length;
+  return mineCount(held) - flags;
+}
+
+/** The Difficulty the Game is played on. */
+export function difficultyOf(game: Game): Difficulty {
+  return open(game).difficulty;
 }
 
 export function statusOf(game: Game): GameStatus {
-  return game.status;
+  return open(game).status;
 }
 
 /** Whole seconds on the timer at `now`, capped at 999 like the three-digit display. */
 export function elapsedSeconds(game: Game, now: number): number {
-  if (game.startedAt === undefined) return 0;
-  const seconds = Math.floor(((game.endedAt ?? now) - game.startedAt) / 1000);
+  const { startedAt, endedAt } = open(game);
+  if (startedAt === undefined) return 0;
+  const seconds = Math.floor(((endedAt ?? now) - startedAt) / 1000);
   return Math.min(Math.max(seconds, 0), 999);
 }
 
 /** The seconds on which a lost or won Game's timer stopped, or none while the Game goes on. */
 export function finalSeconds(game: Game): number | undefined {
-  return game.endedAt === undefined ? undefined : elapsedSeconds(game, game.endedAt);
+  const { endedAt } = open(game);
+  return endedAt === undefined ? undefined : elapsedSeconds(game, endedAt);
 }
 
 export function cellView(game: Game, cell: Coord): CellView {
-  const index = indexOf(game.difficulty, cell);
-  if (game.exploded?.has(index)) return { kind: "exploded" };
-  if (game.revealed.has(index)) {
-    return { kind: "revealed", clue: clueAt(game.difficulty, game.mines ?? new Set(), cell) };
+  const held = open(game);
+  const index = indexOf(held.difficulty, cell);
+  if (held.exploded?.has(index)) return { kind: "exploded" };
+  if (held.revealed.has(index)) {
+    return { kind: "revealed", clue: clueAt(held.difficulty, held.mines ?? new Set(), cell) };
   }
-  const marker = game.markers.get(index);
-  if (game.status === "lost") {
-    const hasMine = game.mines?.has(index) ?? false;
+  const marker = held.markers.get(index);
+  if (held.status === "lost") {
+    const hasMine = held.mines?.has(index) ?? false;
     if (marker === "flag") return { kind: hasMine ? "flag" : "wrongFlag" };
     if (hasMine) return { kind: "mine" };
   }

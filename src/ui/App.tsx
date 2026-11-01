@@ -1,5 +1,6 @@
 import { useReducer, useState } from "react";
 import {
+  difficultyOf,
   elapsedSeconds,
   mineCounter,
   newGame,
@@ -46,7 +47,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
     dispatch({ type: "mouse", input, now: Date.now(), questionsEnabled });
   const startGame = (difficulty: Difficulty) =>
     dispatch({ type: "newGame", game: newGame(difficulty, { random: Math.random }) });
-  const startNewGame = () => startGame(game.difficulty);
+  const startNewGame = () => startGame(difficultyOf(game));
   const chooseDifficulty = (choice: Difficulty) => {
     saveDifficulty(choice);
     startGame(choice);
@@ -59,7 +60,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   return (
     <Window>
       <GameMenuBar
-        difficulty={game.difficulty}
+        difficulty={difficultyOf(game)}
         onNewGame={startNewGame}
         onChooseDifficulty={chooseDifficulty}
         questionsEnabled={questionsEnabled}

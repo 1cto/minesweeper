@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent } from "react";
-import { cellView, type Coord, type Game } from "../engine/game";
+import { cellView, difficultyOf, type Coord, type Game } from "../engine/game";
 import { looksPressedIn, type Button, type MouseInput, type Press } from "./press";
 import { cellSprite } from "./sprites";
 
@@ -25,7 +25,7 @@ type BoardProps = {
  * happens: over a Cell it acts on that Cell, anywhere else it only ends the Press.
  */
 export function Board({ game, press, onMouse }: BoardProps) {
-  const { width, height } = game.difficulty;
+  const { width, height } = difficultyOf(game);
   const cells: Coord[] = [];
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) cells.push({ row, col });
