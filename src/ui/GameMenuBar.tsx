@@ -3,7 +3,7 @@ import { DIFFICULTIES, type Difficulty } from "../engine/game";
 import { AboutDialog } from "./AboutDialog";
 import { BestTimesDialog } from "./BestTimesDialog";
 import { MenuBar, type Menu } from "./MenuBar";
-import type { BestTimes } from "./storage";
+import type { BestTimes } from "./bestTimes";
 
 type GameMenuBarProps = {
   difficulty: Difficulty;

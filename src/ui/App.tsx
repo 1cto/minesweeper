@@ -9,6 +9,7 @@ import {
   type Layout,
 } from "../engine/game";
 import { Board } from "./Board";
+import { offeredName, waitingForName } from "./bestTimes";
 import { applyBoardEvent } from "./boardState";
 import { GameMenuBar } from "./GameMenuBar";
 import { NewBestTimeDialog } from "./NewBestTimeDialog";
@@ -39,7 +40,8 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
   // The Win and Loss faces outrank the surprised face shown while a button is held.
   const face: Face = isUnderWay(press) && FACE[status] === "normal" ? "surprised" : FACE[status];
   const now = useClock(status === "playing");
-  const { bestTimes, lastName, newBestTime, recordName, resetScores } = useBestTimes(game, now);
+  const { bestTimes, recordName, resetScores } = useBestTimes(game);
+  const newBestTime = waitingForName(bestTimes);
 
   const onMouse = (input: MouseInput) =>
     dispatch({ type: "mouse", input, now: Date.now(), questionsEnabled: marks });
@@ -78,7 +80,7 @@ export function App({ initialDifficulty, initialLayout }: AppProps) {
       {newBestTime && (
         <NewBestTimeDialog
           difficulty={newBestTime.difficulty}
-          initialName={lastName}
+          initialName={offeredName(bestTimes)}
           onOk={recordName}
         />
       )}

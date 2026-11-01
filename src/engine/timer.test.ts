@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, elapsedSeconds, newGame, statusOf } from "./game";
+import { applyAction, elapsedSeconds, finalSeconds, newGame, statusOf } from "./game";
 import {
   cycleMarker,
   layoutFrom,
@@ -68,5 +68,35 @@ describe("the timer", () => {
 
     expect(elapsedSeconds(playing, 1_009_999)).toBe(999);
     expect(elapsedSeconds(playing, 3_600_000)).toBe(999);
+  });
+});
+
+describe("the final seconds", () => {
+  it("are where the timer stopped, once the Game is lost or won", () => {
+    const lost = revealOrMark(twoMines(), [
+      reveal(centre, 10_000),
+      reveal({ row: 0, col: 0 }, 17_200),
+    ]);
+    const won = revealOrMark(twoMines(), [
+      reveal({ row: 0, col: 2 }, 10_000),
+      reveal({ row: 2, col: 0 }, 14_500),
+    ]);
+
+    expect(finalSeconds(lost)).toBe(7);
+    expect(finalSeconds(won)).toBe(4);
+  });
+
+  it("stop at 999 like the timer", () => {
+    const won = revealOrMark(twoMines(), [
+      reveal({ row: 0, col: 2 }, 10_000),
+      reveal({ row: 2, col: 0 }, 1_210_000),
+    ]);
+
+    expect(finalSeconds(won)).toBe(999);
+  });
+
+  it("are none while the Game is not over", () => {
+    expect(finalSeconds(twoMines())).toBeUndefined();
+    expect(finalSeconds(applyAction(twoMines(), reveal(centre, 10_000)))).toBeUndefined();
   });
 });
