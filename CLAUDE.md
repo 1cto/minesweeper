@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues and specs live in GitHub Issues for `1cto/minesweeper`. See `docs/agents/issue-tracker.md`.
+Issues and specs live in GitHub Issues for `1cto/minesweeper`; cloud sessions reach them only through REST (`gh api`). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
