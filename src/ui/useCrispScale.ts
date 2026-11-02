@@ -1,28 +1,13 @@
 import { useLayoutEffect, type RefObject } from "react";
-
-/** The largest scale the window is drawn at. */
-const MAX_SCALE = 3;
+import { crispScale } from "./crispScale";
 
 /**
- * The scales the window may be drawn at, from the largest down: ×1, ×2 and ×3, and every scale in
- * between at which one drawn pixel covers a whole number of screen pixels at `pixelRatio`, such as
- * ×1.5 and ×2.5 at a ratio of 2. At those scales every pixel edge stays crisp.
- */
-function scalesFor(pixelRatio: number): number[] {
-  const scales = new Set([1, 2, MAX_SCALE]);
-  for (let pixels = Math.ceil(pixelRatio); pixels <= MAX_SCALE * pixelRatio; pixels++) {
-    scales.add(pixels / pixelRatio);
-  }
-  return [...scales].sort((a, b) => b - a);
-}
-
-/**
- * Draws the element at the largest of those scales at which it fits the viewport, and shows that
- * scale in its `data-scale` attribute. The scale is recomputed when the viewport is resized or
- * turned, when the device pixel ratio changes, and when the element's own size changes, as it
- * does with the Difficulty. When even ×1 doesn't fit, the element keeps its ×1 size and the page
- * scrolls. Centred on the desktop, the window lands on whole screen pixels at every one of these
- * scales, because its size at ×1 is an even number of pixels each way.
+ * Draws the element at its crisp scale for the viewport and the device pixel ratio (see
+ * `crispScale`), and shows that scale in its `data-scale` attribute. The scale is recomputed when
+ * the viewport is resized or turned, when the device pixel ratio changes, and when the element's
+ * own size changes, as it does with the Difficulty. Centred on the desktop, the window lands on
+ * whole screen pixels at a device pixel ratio of 1 or 2, because its size at ×1 is an even number
+ * of pixels each way; at other ratios it may fall between two, which is not rounded away.
  *
  * The scale is CSS `zoom` rather than a transform: a transform would become the containing
  * block of the `position: fixed` menu backdrop and dialogs inside, so they would only cover the
@@ -34,18 +19,19 @@ export function useCrispScale(ref: RefObject<HTMLElement | null>): void {
     const element = ref.current;
     if (!element) return;
     const fit = () => {
-      // The offset size leaves out the element's own zoom, so it is the size at ×1. The
+      // The size at ×1 is measured at ×1: at a fractional zoom the browser may round a border
+      // down to whole pixels, and the size measured there would then be a pixel short. The
       // viewport size includes any scrollbars, which go away once the chosen scale fits.
-      const { offsetWidth: width, offsetHeight: height } = element;
-      const scale =
-        scalesFor(window.devicePixelRatio).find(
-          (scale) => width * scale <= window.innerWidth && height * scale <= window.innerHeight,
-        ) ?? 1;
+      element.style.zoom = "1";
+      const atOne = { width: element.offsetWidth, height: element.offsetHeight };
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const scale = crispScale(atOne, viewport, window.devicePixelRatio);
       element.style.zoom = String(scale);
       element.dataset.scale = String(scale);
     };
     fit();
-    // A change of zoom alone is no resize to the observer, so this never loops.
+    // The zoom changes the size the observer sees, but the next fit measures at ×1 again and
+    // chooses the same scale, so the observer settles at once.
     const observer = new ResizeObserver(fit);
     observer.observe(element);
     window.addEventListener("resize", fit);
