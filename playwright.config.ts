@@ -1,9 +1,18 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 // E2E_PORT lets several runs test side by side, even in one checkout: each port builds into its own
 // directory, so one run's build never empties the files another run is serving.
 const port = Number(process.env.E2E_PORT ?? 4173);
 const outDir = `dist-e2e/${port}`;
+
+// A Claude Code cloud session comes with one Chromium, of a newer revision than the one this
+// Playwright version downloads, and must not download another; its tests run on that one.
+const cloudChromium = "/opt/pw-browsers/chromium";
+const launchOptions =
+  process.env.CLAUDE_CODE_REMOTE === "true" && existsSync(cloudChromium)
+    ? { executablePath: cloudChromium }
+    : {};
 
 export default defineConfig({
   testDir: "e2e",
@@ -17,6 +26,7 @@ export default defineConfig({
     // The site is published as a GitHub Pages project page, so it is served under /minesweeper/.
     baseURL: `http://localhost:${port}/minesweeper/`,
     trace: "on-first-retry",
+    launchOptions,
   },
   projects: [
     {
