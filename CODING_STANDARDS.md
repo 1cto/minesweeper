@@ -4,7 +4,7 @@ Rules a reviewer applies to a diff. Types, lint rules, formatting and the test-h
 
 ## Language
 
-- Domain words come from `CONTEXT.md`, spelled and capitalised as there (Board, Cell, Reveal, Flag, Chord, Press, Timer, Best Time, …), and never a word from a term's _Avoid_ list. A new domain concept gets its `CONTEXT.md` entry in the same change.
+- Domain words come from `GLOSSARY.md`, spelled and capitalised as there (Board, Cell, Reveal, Flag, Chord, Press, Timer, Best Time, …), and never a word from a term's _Avoid_ list. A new domain concept gets its `GLOSSARY.md` entry in the same change.
 - Code reads like the surrounding code: the same naming, idiom and comment density. Comments say why in full sentences, as the existing doc comments do.
 
 ## Design
@@ -21,4 +21,4 @@ Rules a reviewer applies to a diff. Types, lint rules, formatting and the test-h
 
 ## Docs
 
-- A change to behaviour or architecture that `README.md` or `CONTEXT.md` describes updates them in the same pull request.
+- A change to behaviour or architecture that `README.md` or `GLOSSARY.md` describes updates them in the same pull request.
