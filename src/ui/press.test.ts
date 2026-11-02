@@ -134,7 +134,9 @@ describe("once the Game is over", () => {
 });
 
 describe("a Chord", () => {
-  /** (1, 1) Revealed with a Clue of 1, its Mine Flagged and a Question on (0, 1); the rest Hidden. */
+  /**
+   * (1, 1) Revealed with a Clue of 1, its Mine Flagged and a Question on (0, 1); the rest Hidden.
+   */
   const playing = revealOrMark(READY, [
     reveal({ row: 1, col: 1 }),
     cycleMarker(TOP_MINE),

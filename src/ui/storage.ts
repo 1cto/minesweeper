@@ -10,7 +10,9 @@ import { BEGINNER, DIFFICULTIES, type Difficulty } from "../engine/game";
 // The Marks (?) preference keeps the key it was first stored under.
 const KEYS = { difficulty: "minesweeper.difficulty", questionsEnabled: "minesweeper.marks" };
 
-/** Strings kept by key, never throwing: a failed read gives `null` and a failed write is dropped. */
+/**
+ * Strings kept by key, never throwing: a failed read gives `null` and a failed write is dropped.
+ */
 export type KeyValueStore = {
   readonly read: (key: string) => string | null;
   readonly write: (key: string, value: string) => void;

@@ -57,7 +57,9 @@ type Held = {
   readonly mines?: ReadonlySet<number>;
   readonly revealed: ReadonlySet<number>;
   readonly markers: ReadonlyMap<number, Marker>;
-  /** Cell indexes of the Mines that lost the Game: one for a Reveal, one per wrong Flag for a Chord. */
+  /**
+   * Cell indexes of the Mines that lost the Game: one for a Reveal, one per wrong Flag for a Chord.
+   */
   readonly exploded?: ReadonlySet<number>;
   /** The `now` of the first Reveal, which starts the timer. */
   readonly startedAt?: number;
@@ -94,7 +96,9 @@ export function applyAction(game: Game, action: Action): Game {
   return seal(clocked(held, play(held, action), action.now));
 }
 
-/** Starts the timer when an action takes the Game out of "ready" and stops it when the Game ends. */
+/**
+ * Starts the timer when an action takes the Game out of "ready" and stops it when the Game ends.
+ */
 function clocked(before: Held, after: Held, now: number): Held {
   const starts = before.status === "ready" && after.status !== "ready";
   const ends = after.status === "won" || after.status === "lost";

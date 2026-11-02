@@ -42,7 +42,9 @@ async function pointAt(page: Page, target: Locator) {
 
 const revealedCells = (page: Page) => page.locator('[data-state="revealed"]');
 
-/** Reveals (1, 2), Flags the Mines that match its Clue and points at (1, 2), ready to Chord there. */
+/**
+ * Reveals (1, 2), Flags the Mines that match its Clue and points at (1, 2), ready to Chord there.
+ */
 async function readyToChord(page: Page) {
   await openWithLayout(page, SIX_AROUND_ONE_TWO);
   await cell(page, 1, 2).click();

@@ -29,7 +29,9 @@ type BoardProps = {
   board: BoardState;
   /** Receives the presses and pointer moves over the Cells, and every release anywhere. */
   onMouse: (input: MouseInput) => void;
-  /** Receives every finger or stylus going down on the Board, and its moves, lift and cancellation. */
+  /**
+   * Receives every finger or stylus going down on the Board, and its moves, lift and cancellation.
+   */
   onTouch: (input: TouchInput) => void;
 };
 

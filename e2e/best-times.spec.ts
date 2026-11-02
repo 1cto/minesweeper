@@ -1,7 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 import { BROKEN_STORAGE, cell, ONE_MINE_IN_THE_CORNER, openWithLayout } from "./helpers";
 
-/** Opens a Beginner Game with Playwright's clock paused, so time only moves when a test moves it. */
+/**
+ * Opens a Beginner Game with Playwright's clock paused, so time only moves when a test moves it.
+ */
 async function openWithPausedClock(page: Page) {
   await page.clock.install({ time: new Date("2026-01-01T09:00:00") });
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
