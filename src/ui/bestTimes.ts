@@ -54,7 +54,9 @@ export function loadBestTimes(store: KeyValueStore): BestTimes {
   return seal({ beaten, lastName: store.read(KEYS.lastName) ?? ANONYMOUS });
 }
 
-/** Keeps the Best Times and the last name for later visits; a Win waiting for a name is not kept. */
+/**
+ * Keeps the Best Times and the last name for later visits; a Win waiting for a name is not kept.
+ */
 export function saveBestTimes(store: KeyValueStore, bestTimes: BestTimes): void {
   const { beaten, lastName } = open(bestTimes);
   store.write(KEYS.bestTimes, JSON.stringify(beaten));

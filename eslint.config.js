@@ -23,4 +23,9 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
   prettier,
+  {
+    // Prettier wraps code at 100 columns but leaves comments as they are, so this holds comments
+    // to the same width. Code lines are Prettier's to judge.
+    rules: { "max-len": ["error", { code: Infinity, comments: 100, ignoreUrls: true }] },
+  },
 );

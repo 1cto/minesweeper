@@ -175,7 +175,8 @@ describe("a Tap", () => {
 
     const tapped = applyBoardEvent(touched, fingerUp({ now: 1_300 }));
     expect(cellView(tapped.game, clueOf1)).toEqual({ kind: "revealed", clue: 1 });
-    // Revealed at 1.3 s, the Timer reads 2 at 3.25 s; had the touch's time been used, it would read 3.
+    // Revealed at 1.3 s, the Timer reads 2 at 3.25 s; had the touch's time been used, it would read
+    // 3.
     expect(elapsedSeconds(tapped.game, 3_250)).toBe(2);
   });
 });
