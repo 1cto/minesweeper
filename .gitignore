@@ -4,3 +4,6 @@ dist-e2e
 playwright-report
 test-results
 *.log
+allure-results
+allure-report
+history.jsonl

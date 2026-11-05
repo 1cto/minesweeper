@@ -8,14 +8,18 @@ import {
   openWithLayout,
 } from "./helpers";
 
-test("the game is a Windows 95/98 window centred on a teal desktop", async ({ page }) => {
-  await page.goto("./");
+test(
+  "the game is a Windows 95/98 window centred on a teal desktop",
+  { tag: "@prod" },
+  async ({ page }) => {
+    await page.goto("./");
 
-  // The title and menu text are drawn with a system font, which differs between machines.
-  await expect(page).toHaveScreenshot("desktop.png", {
-    mask: [page.getByTestId("title-text"), page.getByTestId("menu-text")],
-  });
-});
+    // The title and menu text are drawn with a system font, which differs between machines.
+    await expect(page).toHaveScreenshot("desktop.png", {
+      mask: [page.getByTestId("title-text"), page.getByTestId("menu-text")],
+    });
+  },
+);
 
 test("the title bar shows the name and inert minimise and close buttons", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);
@@ -55,7 +59,7 @@ test("a Revealed Mine is drawn on its Cell", async ({ page }) => {
   await expect(page.getByTestId("game")).toHaveScreenshot("revealed-mine.png");
 });
 
-test("the smiley looks pressed while it is held", async ({ page }) => {
+test("the smiley looks pressed while it is held", { tag: "@prod" }, async ({ page }) => {
   await page.goto("./");
   const smiley = page.getByRole("button", { name: "New game" });
   const box = await smiley.boundingBox();

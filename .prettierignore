@@ -3,3 +3,6 @@ dist-e2e
 playwright-report
 test-results
 pnpm-lock.yaml
+allure-results
+allure-report
+history.jsonl

@@ -98,31 +98,33 @@ test("a held Chord and the O face are drawn", async ({ page }) => {
   await expect(page.getByTestId("game")).toHaveScreenshot("held-chord.png");
 });
 
-test("the middle button never starts the browser's autoscroll or paste over the window", async ({
-  page,
-}) => {
-  await page.goto("./");
-  // Autoscroll starts on the middle button's mousedown, and paste comes with its click.
-  await page.evaluate(() => {
-    const seen: string[] = [];
-    for (const type of ["mousedown", "auxclick"]) {
-      document.addEventListener(type, (event) => {
-        if ((event as MouseEvent).button === 1) seen.push(`${type}: ${event.defaultPrevented}`);
-      });
-    }
-    Object.assign(window, { seen });
-  });
+test(
+  "the middle button never starts the browser's autoscroll or paste over the window",
+  { tag: "@prod" },
+  async ({ page }) => {
+    await page.goto("./");
+    // Autoscroll starts on the middle button's mousedown, and paste comes with its click.
+    await page.evaluate(() => {
+      const seen: string[] = [];
+      for (const type of ["mousedown", "auxclick"]) {
+        document.addEventListener(type, (event) => {
+          if ((event as MouseEvent).button === 1) seen.push(`${type}: ${event.defaultPrevented}`);
+        });
+      }
+      Object.assign(window, { seen });
+    });
 
-  await page.getByTestId("title-text").click({ button: "middle" });
-  await cell(page, 4, 4).click({ button: "middle" });
-  await page.getByTestId("timer").click({ button: "middle" });
+    await page.getByTestId("title-text").click({ button: "middle" });
+    await cell(page, 4, 4).click({ button: "middle" });
+    await page.getByTestId("timer").click({ button: "middle" });
 
-  expect(await page.evaluate(() => (window as unknown as { seen: string[] }).seen)).toEqual([
-    "mousedown: true",
-    "auxclick: true",
-    "mousedown: true",
-    "auxclick: true",
-    "mousedown: true",
-    "auxclick: true",
-  ]);
-});
+    expect(await page.evaluate(() => (window as unknown as { seen: string[] }).seen)).toEqual([
+      "mousedown: true",
+      "auxclick: true",
+      "mousedown: true",
+      "auxclick: true",
+      "mousedown: true",
+      "auxclick: true",
+    ]);
+  },
+);

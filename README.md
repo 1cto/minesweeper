@@ -23,6 +23,8 @@ pnpm install        # dependencies
 pnpm dev            # dev server at http://localhost:5173/minesweeper/
 pnpm test           # engine and UI module tests (Vitest)
 pnpm test:e2e       # browser tests (Playwright; builds and serves a test build)
+pnpm test:prod      # the @prod browser tests against the live site (PROD_URL picks another)
+pnpm report         # Allure report from allure-results into allure-report/
 pnpm build          # production build in dist/
 ```
 
@@ -30,7 +32,7 @@ pnpm build          # production build in dist/
 
 ## Stack
 
-React 19, TypeScript in strict mode, Vite, pnpm, Vitest, Playwright, ESLint and Prettier. GitHub Actions checks every pull request and publishes `main` to GitHub Pages.
+React 19, TypeScript in strict mode, Vite, pnpm, Vitest, Playwright, Allure Report, ESLint and Prettier. GitHub Actions checks every pull request, publishes `main` to GitHub Pages and then tests the live site, with an Allure report.
 
 ## How it is built
 
@@ -50,6 +52,7 @@ Tests sit at agreed seams and check only what a user of that seam can observe.
   - A test-only `?layout=` URL parameter fixes where the Mines are. It only exists in test builds, and `pnpm check:no-test-hooks` fails CI if it ever reaches the public build.
   - Playwright's clock controls time, so timer and Best Time tests are exact.
   - Screenshot baselines pin the look pixel for pixel; text drawn with the system font is masked, so the baselines match on any machine.
+- **Live site** (Playwright, the tests tagged `@prod`): after each deploy the Deploy workflow runs them against https://1cto.github.io/minesweeper/ and publishes an Allure report at **https://1cto.github.io/minesweeper/reports/**, with the trend of earlier runs. Only tests that open the game at its plain address carry the tag, since the public build has no `?layout=`. A failure fails the workflow, and the report is published either way. Why it is set up this way: [ADR 0002](docs/adr/0002-live-site-tests-on-pages.md).
 
 ## Process
 

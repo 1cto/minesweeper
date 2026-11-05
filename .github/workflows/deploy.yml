@@ -27,10 +27,28 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm check:no-test-hooks
-      - uses: actions/configure-pages@v6
+      - id: pages
+        uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+      # The report job publishes the site again with the report beside it, from these same files.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: dist
+          retention-days: 1
+      # The deploy replaces the whole site, the published report included, so the report's
+      # history is fetched before it. On the first run there is none yet.
+      - name: Fetch the report history from the live site
+        run: |
+          curl -fsSL "${{ steps.pages.outputs.base_url }}/reports/history.jsonl" -o history.jsonl \
+            || { echo "No published report history yet."; : > history.jsonl; }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: report-history
+          path: history.jsonl
+          retention-days: 1
 
   deploy:
     needs: build
@@ -38,6 +56,98 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # Runs the tests tagged @prod against the live site. A failure fails the workflow; the report
+  # job still publishes the results.
+  test-live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      PROD_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: site
+      # The deploy reports success before every edge of the Pages CDN serves the new files; the
+      # tests must not run against the previous build.
+      - name: Wait until the live site serves this build
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsSL "${PROD_URL}?run=${GITHUB_RUN_ID}-${attempt}" | cmp -s - site/index.html; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::${PROD_URL} still serves another build after 5 minutes."
+          exit 1
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:prod
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: allure-results
+          path: allure-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Publishes the site again, now with the Allure report at /reports/, whatever the tests found.
+  report:
+    needs: [deploy, test-live]
+    if: ${{ !cancelled() && needs.deploy.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ needs.deploy.outputs.page_url }}reports/
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: results
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: allure-results
+          path: allure-results
+      - if: ${{ steps.results.outcome == 'success' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: report-history
+      - if: ${{ steps.results.outcome == 'success' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: _site
+      - if: ${{ steps.results.outcome == 'success' }}
+        name: Build the report into the site
+        run: |
+          pnpm report
+          mkdir -p _site/reports
+          cp -R allure-report/. _site/reports/
+          cp history.jsonl _site/reports/history.jsonl
+      - if: ${{ steps.results.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          name: github-pages-with-report
+          path: _site
+      - if: ${{ steps.results.outcome == 'success' }}
+        id: deployment
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-with-report
