@@ -17,7 +17,7 @@ export type TouchInput =
   | { readonly type: "held" };
 
 /** How long a finger must stay on a Hidden Cell for its Touch to become a Long Touch. */
-export const LONG_TOUCH_MS = 400;
+export const LONG_TOUCH_MS = 300;
 
 /** How far, in CSS pixels on screen, a finger may wander before its Touch is cancelled. */
 const TOUCH_SLOP_PX = 10;
