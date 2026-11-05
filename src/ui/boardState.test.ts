@@ -82,8 +82,8 @@ const stillHeld = (options: TouchOptions = {}) => touchEvent({ type: "held" }, o
 /** A finger held on `cell` from `now` until it becomes a Long Touch, and lifted. */
 const longTouch = (cell: Coord, { now = 0, ...options }: TouchOptions = {}) => [
   fingerDown(cell, { now, ...options }),
-  stillHeld({ now: now + 400, ...options }),
-  fingerUp({ now: now + 500, ...options }),
+  stillHeld({ now: now + 300, ...options }),
+  fingerUp({ now: now + 400, ...options }),
 ];
 
 /** Draws which Cells look pressed in: "o" for pressed in, "." otherwise. */
@@ -173,22 +173,21 @@ describe("a Tap", () => {
     const touched = applyAll(START, [fingerDown(clueOf1, { now: 1_000 })]);
     expect(cellView(touched.game, clueOf1)).toEqual({ kind: "hidden" });
 
-    const tapped = applyBoardEvent(touched, fingerUp({ now: 1_300 }));
+    const tapped = applyBoardEvent(touched, fingerUp({ now: 1_200 }));
     expect(cellView(tapped.game, clueOf1)).toEqual({ kind: "revealed", clue: 1 });
-    // Revealed at 1.3 s, the Timer reads 2 at 3.25 s; had the touch's time been used, it would read
-    // 3.
-    expect(elapsedSeconds(tapped.game, 3_250)).toBe(2);
+    // Revealed at 1.2 s, the Timer reads 2 at 3.1 s; from the touch's time it would read 3.
+    expect(elapsedSeconds(tapped.game, 3_100)).toBe(2);
   });
 });
 
 describe("a Long Touch", () => {
   const cell = { row: 0, col: 2 };
 
-  it("puts a Flag once the finger has been held for 400 ms, before it lifts", () => {
-    const touched = applyAll(START, [fingerDown(cell, { now: 1_000 }), stillHeld({ now: 1_399 })]);
+  it("puts a Flag once the finger has been held for 300 ms, before it lifts", () => {
+    const touched = applyAll(START, [fingerDown(cell, { now: 1_000 }), stillHeld({ now: 1_299 })]);
     expect(cellView(touched.game, cell)).toEqual({ kind: "hidden" });
 
-    const flagged = applyBoardEvent(touched, stillHeld({ now: 1_400 }));
+    const flagged = applyBoardEvent(touched, stillHeld({ now: 1_300 }));
     expect(cellView(flagged.game, cell)).toEqual({ kind: "flag" });
   });
 
@@ -196,16 +195,16 @@ describe("a Long Touch", () => {
     const flagged = applyAll(START, longTouch(cell));
     const questioned = applyAll(flagged, [
       fingerDown(cell, { now: 1_000 }),
-      stillHeld({ now: 1_400 }),
+      stillHeld({ now: 1_300 }),
     ]);
     expect(cellView(questioned.game, cell)).toEqual({ kind: "question" });
 
-    const lifted = applyBoardEvent(questioned, fingerUp({ now: 1_500 }));
+    const lifted = applyBoardEvent(questioned, fingerUp({ now: 1_400 }));
     expect(cellView(lifted.game, cell)).toEqual({ kind: "question" });
   });
 
-  it("is still a Long Touch when the finger lifts after 400 ms before the moment was delivered", () => {
-    const lifted = applyAll(START, [fingerDown(cell, { now: 1_000 }), fingerUp({ now: 1_450 })]);
+  it("is still a Long Touch when the finger lifts after 300 ms before the moment was delivered", () => {
+    const lifted = applyAll(START, [fingerDown(cell, { now: 1_000 }), fingerUp({ now: 1_350 })]);
     expect(cellView(lifted.game, cell)).toEqual({ kind: "flag" });
   });
 
@@ -308,12 +307,12 @@ describe("what the Board shows during a Touch", () => {
   });
 
   it("stops pushing in the Cell once a Long Touch puts its marker, with the Touch under way until the finger lifts", () => {
-    const flagged = applyAll(START, [fingerDown(middle), stillHeld({ now: 400 })]);
+    const flagged = applyAll(START, [fingerDown(middle), stillHeld({ now: 300 })]);
     expect(cellView(flagged.game, middle)).toEqual({ kind: "flag" });
     expect(pressedIn(flagged)).toEqual([".....", ".....", "....."]);
     expect(isPressOrTouchUnderWay(flagged)).toBe(true);
 
-    expect(isPressOrTouchUnderWay(applyBoardEvent(flagged, fingerUp({ now: 500 })))).toBe(false);
+    expect(isPressOrTouchUnderWay(applyBoardEvent(flagged, fingerUp({ now: 400 })))).toBe(false);
   });
 });
 
@@ -360,7 +359,7 @@ describe("a Touch is cancelled with no action", () => {
   });
 
   it("keeping a marker a Long Touch has already put", () => {
-    const flagged = applyAll(START, [fingerDown(cell), stillHeld({ now: 400 })]);
+    const flagged = applyAll(START, [fingerDown(cell), stillHeld({ now: 300 })]);
     for (const end of [fingerMove({ x: 130, y: 100 }), browserCancels()]) {
       const ended = applyBoardEvent(flagged, end);
       expect(cellView(ended.game, cell)).toEqual({ kind: "flag" });
@@ -438,19 +437,19 @@ describe("a Touch on a Revealed Cell", () => {
     expect(picture(chorded.game)).toEqual(["F1000", "11011", "0001F"]);
   });
 
-  it("pushes in the Hidden Neighbors and those with a Question, never a Flag, until the Touch ends, held past 400 ms too", () => {
+  it("pushes in the Hidden Neighbors and those with a Question, never a Flag, until the Touch ends, held past 300 ms too", () => {
     const touched = applyAll(correctlyFlagged, [fingerDown(clueOf1)]);
     expect(pressedIn(touched)).toEqual([".oo..", "o.o..", "ooo.."]);
     expect(isPressOrTouchUnderWay(touched)).toBe(true);
 
-    const held = applyBoardEvent(touched, stillHeld({ now: 400 }));
+    const held = applyBoardEvent(touched, stillHeld({ now: 300 }));
     expect(pressedIn(held)).toEqual([".oo..", "o.o..", "ooo.."]);
 
     expect(pressedIn(applyBoardEvent(held, browserCancels()))).toEqual([".....", ".....", "....."]);
   });
 
-  it("held past 400 ms still Chords when the finger lifts, and never becomes a Long Touch", () => {
-    const held = applyAll(correctlyFlagged, [fingerDown(clueOf1), stillHeld({ now: 400 })]);
+  it("held past 300 ms still Chords when the finger lifts, and never becomes a Long Touch", () => {
+    const held = applyAll(correctlyFlagged, [fingerDown(clueOf1), stillHeld({ now: 300 })]);
     expect(picture(held.game)).toEqual(["F?###", "#1###", "#####"]);
     expect(isPressOrTouchUnderWay(held)).toBe(true);
 
@@ -485,7 +484,7 @@ describe("a Touch on a Revealed Cell", () => {
     expect(isPressOrTouchUnderWay(lifted)).toBe(false);
   });
 
-  it("whose Clue doesn't match its Flagged Neighbors Reveals or Flags nothing, whether a Tap or held past 400 ms", () => {
+  it("whose Clue doesn't match its Flagged Neighbors Reveals or Flags nothing, whether a Tap or held past 300 ms", () => {
     const playing: BoardState = {
       game: revealOrMark(READY, [reveal(clueOf1)]),
       press: undefined,
