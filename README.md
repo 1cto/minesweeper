@@ -10,7 +10,7 @@ A faithful browser recreation of Windows 95/98 Minesweeper, built with React and
 
 - The classic rules: three Difficulties (Beginner, Intermediate, Expert), a first Reveal that is never a Mine, Cascades, Flags and Questions on the right button, and the Chord on the middle button or both buttons.
 - The original feel: Cells press in under the mouse and open on release, the smiley reacts, the timer counts to 999 and the mine counter can go negative.
-- Touch play on tablets: a Tap Reveals a Cell when the finger lifts, a Long Touch, a finger held for 400 ms, puts, changes or removes its Flag or Question at once, and a Tap on a Revealed Cell Chords there. A stylus plays like a finger, and a mouse or trackpad works alongside as before.
+- Touch play on tablets: a Tap Reveals a Cell when the finger lifts, a Long Touch, a finger held for 300 ms, puts, changes or removes its Flag or Question at once, and a Tap on a Revealed Cell Chords there. A stylus plays like a finger, and a mouse or trackpad works alongside as before.
 - The original look: a Windows 98 window with Game and Help menus, Win and Loss presentations, and Best Times with player names kept in the browser.
 - Drawn at the largest scale up to ×3 that fits the screen and keeps every pixel crisp, a whole number of screen pixels across: ×1, ×2 or ×3 on a standard screen, and ×1.5 or ×2.5 as well at a device pixel ratio of 2, as on an iPad, where Expert held upright is drawn at ×1.5.
 
@@ -47,7 +47,7 @@ The vocabulary used in the code, tests and issues (Board, Cell, Reveal, Flag, Ch
 Tests sit at agreed seams and check only what a user of that seam can observe.
 
 - **Engine** (Vitest, `src/engine/*.test.ts`): every rule is tested through the engine's public interface. Small Boards are drawn as text (`"x"` for a Mine), and the first-Reveal safety is checked across hundreds of seeded random sources.
-- **UI modules** (Vitest, `src/ui/*.test.ts`): the Press module, the Board's reducer, the scale rule and the Best Times module are pure, so their rules are tested through their interfaces without a browser, including Best Times saved in a broken or unreadable form. The Touch rules, the 400 ms of a Long Touch included, are tested through the Board's reducer with explicit times.
+- **UI modules** (Vitest, `src/ui/*.test.ts`): the Press module, the Board's reducer, the scale rule and the Best Times module are pure, so their rules are tested through their interfaces without a browser, including Best Times saved in a broken or unreadable form. The Touch rules, the 300 ms of a Long Touch included, are tested through the Board's reducer with explicit times.
 - **Browser** (Playwright, `e2e/`): real mouse input, and real touch input in a tablet-sized viewport, against a test build.
   - A test-only `?layout=` URL parameter fixes where the Mines are. It only exists in test builds, and `pnpm check:no-test-hooks` fails CI if it ever reaches the public build.
   - Playwright's clock controls time, so timer and Best Time tests are exact.

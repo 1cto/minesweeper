@@ -8,7 +8,7 @@ const smiley = (page: Page) => page.getByRole("button", { name: "New game" });
 const hiddenCells = (page: Page) => page.locator('[data-state="hidden"]');
 
 /**
- * Opens a Beginner Game with one Mine in the corner and Playwright's clock paused, so the 400 ms of
+ * Opens a Beginner Game with one Mine in the corner and Playwright's clock paused, so the 300 ms of
  * a Long Touch only pass when a test moves the clock on.
  */
 async function openPaused(page: Page) {
@@ -73,7 +73,7 @@ test("a Tap acts once: the smiley looks surprised once and the click the browser
   await expect(cell(page, 1, 1)).toHaveAttribute("data-state", "revealed");
 });
 
-test("a Long Touch puts a Flag after 400 ms while the finger is still down, and the lift does nothing more", async ({
+test("a Long Touch puts a Flag after 300 ms while the finger is still down, and the lift does nothing more", async ({
   page,
 }) => {
   await openPaused(page);
@@ -83,7 +83,7 @@ test("a Long Touch puts a Flag after 400 ms while the finger is still down, and 
   await expect(target).toHaveAttribute("data-pressed", "true");
   await expect(smiley(page)).toHaveAttribute("data-face", "surprised");
 
-  await page.clock.runFor(400);
+  await page.clock.runFor(300);
   await expect(target).toHaveAttribute("data-state", "flag");
   await expect(target).not.toHaveAttribute("data-pressed");
   await expect(page.getByTestId("mine-counter")).toHaveAccessibleName("Mine counter: 000");
@@ -105,7 +105,7 @@ test("sliding the finger away cancels the Touch: nothing is Revealed or Flagged"
   await expect(target).toHaveAttribute("data-pressed", "true");
   await finger.moveBy(30, 0);
   await expect(target).not.toHaveAttribute("data-pressed");
-  await page.clock.runFor(400);
+  await page.clock.runFor(300);
   await finger.lift();
 
   await expect(smiley(page)).toHaveAttribute("data-face", "normal");
@@ -137,7 +137,7 @@ test("a Tap on a Revealed Cell whose Clue equals its Flagged Neighbors Chords, h
   await openPaused(page);
   await cell(page, 1, 1).tap();
   const finger = await fingerDown(page, cell(page, 0, 0));
-  await page.clock.runFor(400);
+  await page.clock.runFor(300);
   await finger.lift();
   await expect(cell(page, 0, 0)).toHaveAttribute("data-state", "flag");
 
