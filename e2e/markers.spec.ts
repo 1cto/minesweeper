@@ -51,22 +51,26 @@ test("the left button Reveals a Cell that carries a Question", async ({ page }) 
   await expect(page.getByRole("button", { name: "New game" })).toHaveAttribute("data-face", "cool");
 });
 
-test("the browser's context menu never opens over the window", async ({ page }) => {
-  await page.goto("./");
-  await page.evaluate(() => {
-    const prevented: boolean[] = [];
-    document.addEventListener("contextmenu", (event) => prevented.push(event.defaultPrevented));
-    Object.assign(window, { prevented });
-  });
+test(
+  "the browser's context menu never opens over the window",
+  { tag: "@prod" },
+  async ({ page }) => {
+    await page.goto("./");
+    await page.evaluate(() => {
+      const prevented: boolean[] = [];
+      document.addEventListener("contextmenu", (event) => prevented.push(event.defaultPrevented));
+      Object.assign(window, { prevented });
+    });
 
-  await page.getByTestId("title-text").click({ button: "right" });
-  await cell(page, 4, 4).click({ button: "right" });
-  await page.getByTestId("timer").click({ button: "right" });
+    await page.getByTestId("title-text").click({ button: "right" });
+    await cell(page, 4, 4).click({ button: "right" });
+    await page.getByTestId("timer").click({ button: "right" });
 
-  expect(
-    await page.evaluate(() => (window as unknown as { prevented: boolean[] }).prevented),
-  ).toEqual([true, true, true]);
-});
+    expect(
+      await page.evaluate(() => (window as unknown as { prevented: boolean[] }).prevented),
+    ).toEqual([true, true, true]);
+  },
+);
 
 test("Flags, Questions and a negative mine counter are drawn", async ({ page }) => {
   await openWithLayout(page, ONE_MINE_IN_THE_CORNER);

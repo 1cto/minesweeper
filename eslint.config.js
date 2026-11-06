@@ -6,7 +6,16 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "dist-e2e", "playwright-report", "test-results"] },
+  {
+    ignores: [
+      "dist",
+      "dist-e2e",
+      "playwright-report",
+      "test-results",
+      "allure-results",
+      "allure-report",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
