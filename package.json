@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:prod": "playwright test -c playwright.prod.config.ts",
-    "report": "allure generate allure-results --clean",
+    "report": "allure generate allure-results --clean && node scripts/report-badge.mjs",
     "check:no-test-hooks": "node scripts/check-no-test-hooks.mjs"
   },
   "dependencies": {

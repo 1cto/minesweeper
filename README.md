@@ -1,5 +1,7 @@
 # Minesweeper
 
+[![Live site tests](https://img.shields.io/endpoint?url=https%3A%2F%2F1cto.github.io%2Fminesweeper%2Freports%2Fbadge.json)](https://1cto.github.io/minesweeper/reports/)
+
 A faithful browser recreation of Windows 95/98 Minesweeper, built with React and TypeScript.
 
 **Play it: https://1cto.github.io/minesweeper/**
@@ -52,7 +54,7 @@ Tests sit at agreed seams and check only what a user of that seam can observe.
   - A test-only `?layout=` URL parameter fixes where the Mines are. It only exists in test builds, and `pnpm check:no-test-hooks` fails CI if it ever reaches the public build.
   - Playwright's clock controls time, so timer and Best Time tests are exact.
   - Screenshot baselines pin the look pixel for pixel; text drawn with the system font is masked, so the baselines match on any machine.
-- **Live site** (Playwright, the tests tagged `@prod`): after each deploy the Deploy workflow runs them against https://1cto.github.io/minesweeper/ and publishes an Allure report at **https://1cto.github.io/minesweeper/reports/**, with the trend of earlier runs. Only tests that open the game at its plain address carry the tag, since the public build has no `?layout=`. A failure fails the workflow, and the report is published either way. Why it is set up this way: [ADR 0002](docs/adr/0002-live-site-tests-on-pages.md).
+- **Live site** (Playwright, the tests tagged `@prod`): after each deploy the Deploy workflow runs them against https://1cto.github.io/minesweeper/ and publishes an Allure report at **https://1cto.github.io/minesweeper/reports/**, with the trend of earlier runs. The badge at the top of this README shows its result, from the `badge.json` that `pnpm report` writes beside the report. Only tests that open the game at its plain address carry the tag, since the public build has no `?layout=`. A failure fails the workflow, and the report is published either way. Why it is set up this way: [ADR 0002](docs/adr/0002-live-site-tests-on-pages.md).
 
 ## Process
 
